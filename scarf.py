@@ -48,25 +48,54 @@
 
 
 
-n=20
-print("-"*50)
-for i in range(1,11):
-    print(f"{n}x{i}={n*i}", end=" ")
+# n=20
+# print("-"*50)
+# for i in range(1,11):
+#     print(f"{n}x{i}={n*i}", end=" ")
+# import math
+# r = float(input("enter"))
+# area = math.pi*r**2
+# print(area)
+
+# import datetime
+# t=datetime.datetime.now()
+# print(t)
+
+# frst_name = input("enter")
+# last_name = input("enter")
+# s = frst_name + last_name
+# print(s[::-1])
+
+# a = input().split(",")
+# print(a)
+# b = tuple(a)
+# print(b)
+# file = input("file name")
+# f = file.split(".")
+# print(f[-1])
 
 
 
+#
+# color_list = ["Red","Green","White" ,"Black"]
+#
+# print(color_list[0],color_list[-1])
+# n = input()
+# c1 =int(n+n)
+# c2 = int(n+n+n)
+#
+# print(int(n)+c1+c2)
 
+# from datetime import date
+# f_date= date(2022,7,2)
+# l_date=date(2022,8,1)
+# delta = l_date - f_date
+# print(delta.days)
 
-
-
-
-
-
-
-
-
-
-
+# import math
+# r = int(input())
+# v = math.pi*(4/3)*r**3
+# print(v)
 
 
 
