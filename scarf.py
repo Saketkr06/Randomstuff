@@ -97,10 +97,127 @@
 # v = math.pi*(4/3)*r**3
 # print(v)
 
+# a=17
+# b= int(input())
+# c=b-a
+# if c>17:
+#     print(2*c)
+# else:
+#     print(c)
+# def difference(n):
+#     if n<=17:
+#         return 17-n
+#     else:
+#         return (n-17)*2
+#
+# print(difference(22))
+# letter = input()
+# if letter[0:2]=="is":
+#     print(letter)
+#
+# else:
+#     print("is"+letter)
 
+# n=int(input())
+# if n%2==0:
+#     print("even")
+#
+# else:
+#     print("odd")
 
+# def count_4(nums):
+#     count = 0
+#     for num in nums:
+#         if num == 4:
+#             count +=1
+#     print(count)
+#
+# print(count_4([1,4,6,4,7,4]))
 
+# vowel = ["a","e","i","o","u"]
+# enter_letter=input()
+# if enter_letter in vowel:
+#     print("it is a vowel")
+#
+# else:
+#     print("Go on machaa")
 
+# def check_value(v):
+#     n = int(input("enter"))
+#     if n in v:
+#         return True
+#     else:
+#         return False
+#
+# print(check_value([1, 5, 8, 3]))
+#
+# def histogram(items):
+#     for i in range(4):
+#         print("*"*items[i])
+#
+# histogram([2, 3, 6, 5])
+
+# a,b = input().split(",")
+# i=1
+# n=1000
+# for i in range(1,n):
+#     if int(a)%i==0 and int(b)%i==0:
+#         i =i*1
+#         print(i)
+# import math
+# def dist_cal(x1,y1,x2,y2):
+#     y_dist=y2-y1
+#     x_dist=x2-x1
+#     z=x_dist**2 + y_dist**2
+#     dst = math.sqrt(z)
+#     print(dst)
+#
+# print(dist_cal(4,6,5,8))
+
+# def principal_amt(amt,i,years):
+#     sum = 0
+#     m1 = amt*0.01*i*years
+#     sum = sum + m1 + amt
+#     return sum
+#
+# print(principal_amt(10000,3.5,7))
+#
+# def personal_details():
+#     name = "Saket Kumar"
+#     age = 22
+#     place = "Bangalore"
+#     return f"Hey {name} you are {age} years old living in {place}"
+# print(personal_details())
+# def add_two(a,b):
+#     if not (isinstance(a,int) and isinstance(b,int)):
+#         return "Enter integer"
+#     return a + b
+# print(add_two(10,"c"))
+# def lcm(a,b):
+#     if a > b:
+#         z = a
+#     else:
+#         z = b
+#     while True:
+#         if z%a==0 and z%b==0:
+#             lcm = z
+#             break
+#         z += 1
+#     return lcm
+# print(lcm(4,6))
+
+# import os.path
+# print(os.path.isfile('main.py'))
+
+# import struct
+# print(struct.calcsize("P")*8)
+
+# import os
+# for data in os.environ:
+#     print(data)
+#     print('-'*15)
+#     print(os.environ[data])
+#     print('='*30)
 
 
 
