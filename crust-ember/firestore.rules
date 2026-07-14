@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Each order is its own document. Customers may create orders only as
+    // themselves; they can read their own. The console (any signed-in device
+    // in this demo) can read and update all orders.
+    match /orders/{orderId} {
+      allow create: if request.auth != null
+                    && request.resource.data.customerId == request.auth.uid;
+      allow read, update, delete: if request.auth != null;
+    }
+
+    // Store-managed docs (inventory)
+    match /store/{docId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+
+/* PRODUCTION HARDENING (when you outgrow the demo):
+   give restaurant devices a custom claim via the Admin SDK —
+     admin.auth().setCustomUserClaims(uid, { staff: true })
+   then tighten:
+     allow read:   if request.auth.token.staff == true
+                   || resource.data.customerId == request.auth.uid;
+     allow update, delete: if request.auth.token.staff == true;
+   and lock /store/** writes to staff only.                                  */

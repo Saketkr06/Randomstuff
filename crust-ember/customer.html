@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Crust & Ember — Order Online</title>
+<link rel="manifest" href="./manifest-customer.json">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍕</text></svg>">
+<link rel="apple-touch-icon" href="./icons/customer-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#191210">
+</head>
+<body style="margin:0;background:#FFF9F0">
+<div id="root"></div>
+<script>window.CE_MODE="customer"</script>
+<script src="./firebase-config.js"></script>
+<script src="./bundle.js"></script>
+<script>if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js").catch(function(){}); }</script>
+</body>
+</html>

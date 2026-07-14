@@ -1,0 +1,13 @@
+{
+  "name": "Crust & Ember — Restaurant Console",
+  "short_name": "C&E Console",
+  "start_url": "./restaurant.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#191210",
+  "theme_color": "#191210",
+  "icons": [
+    { "src": "./icons/restaurant-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icons/restaurant-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
