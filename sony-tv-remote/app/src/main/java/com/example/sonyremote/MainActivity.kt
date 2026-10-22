@@ -28,14 +28,15 @@ class MainActivity : Activity() {
     @Volatile private var key = "0000"
     private val prefs by lazy { getSharedPreferences("tv", MODE_PRIVATE) }
 
-    // Button codes published by Sony for Bravia televisions.
+    // Built-in copy of the button codes in Sony's published list. Used only if the TV
+    // cannot give us its own list (see codeFor).
     private val codes = mapOf(
         "Up" to "AAAAAQAAAAEAAAB0Aw==",
         "Down" to "AAAAAQAAAAEAAAB1Aw==",
         "Left" to "AAAAAQAAAAEAAAA0Aw==",
         "Right" to "AAAAAQAAAAEAAAAzAw==",
         "OK" to "AAAAAQAAAAEAAABlAw==",
-        "Home" to "AAAAAgAAABoAAABXAw==",
+        "Home" to "AAAAAQAAAAEAAABgAw==",
         "Back" to "AAAAAgAAAJcAAAAjAw==",
         "Input" to "AAAAAQAAAAEAAAAlAw==",
         "Vol +" to "AAAAAQAAAAEAAAASAw==",
@@ -171,7 +172,28 @@ class MainActivity : Activity() {
         bg(block)
     }
 
-    private fun press(name: String) = act { ircc(codes.getValue(name)); say("Sent $name") }
+    private fun press(name: String) = act { ircc(codeFor(name)); say("Sent $name") }
+
+    // The TV's own button list is the most reliable source, because codes differ a little
+    // between Sony models. Names below are the ones Sony uses where they differ from ours.
+    private val tvNames = mapOf("OK" to "Confirm", "Back" to "Return", "Vol +" to "VolumeUp", "Vol -" to "VolumeDown")
+    @Volatile private var tvCodes: Map<String, String>? = null
+    @Volatile private var tvCodesHost = ""
+
+    private fun codeFor(button: String): String {
+        if (tvCodesHost != host) {
+            tvCodes = try {
+                val list = bravia("system", "getRemoteControllerInfo").getJSONArray("result").getJSONArray(1)
+                (0 until list.length()).associate {
+                    list.getJSONObject(it).getString("name") to list.getJSONObject(it).getString("value")
+                }
+            } catch (e: Exception) {
+                null
+            }
+            tvCodesHost = host
+        }
+        return tvCodes?.get(tvNames[button] ?: button) ?: codes.getValue(button)
+    }
 
     // ---------- network ----------
 
@@ -199,14 +221,18 @@ class MainActivity : Activity() {
 
     private fun ircc(code: String) {
         val xml = """<?xml version="1.0"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:X_SendIRCC xmlns:u="urn:schemas-sony-com:service:IRCC:1"><IRCCCode>$code</IRCCCode></u:X_SendIRCC></s:Body></s:Envelope>"""
-        http(
-            "POST", "http://$host/sony/IRCC", xml,
-            mapOf(
-                "X-Auth-PSK" to key,
-                "Content-Type" to "text/xml; charset=UTF-8",
-                "SOAPACTION" to "\"urn:schemas-sony-com:service:IRCC:1#X_SendIRCC\""
-            )
+        val headers = mapOf(
+            "X-Auth-PSK" to key,
+            "Content-Type" to "text/xml; charset=UTF-8",
+            "SOAPACTION" to "\"urn:schemas-sony-com:service:IRCC:1#X_SendIRCC\""
         )
+        // Sony's current guide writes the path in lower case; some older models only know upper case.
+        try {
+            http("POST", "http://$host/sony/ircc", xml, headers)
+        } catch (e: Exception) {
+            if (e.message?.contains("404") != true) throw e
+            http("POST", "http://$host/sony/IRCC", xml, headers)
+        }
     }
 
     private fun bravia(service: String, method: String, params: String = ""): JSONObject {
