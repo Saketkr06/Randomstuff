@@ -11,6 +11,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     defaults:
       run:
         working-directory: sony-tv-remote
@@ -33,3 +35,15 @@ jobs:
         with:
           name: sony-tv-remote
           path: sony-tv-remote/app/build/outputs/apk/debug/app-debug.apk
+
+      # Puts the app file on the repository's Releases page, so it can be downloaded
+      # straight from the GitHub phone app. The "latest" release is replaced on every build.
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk sony-tv-remote.apk
+          gh release delete latest --cleanup-tag --yes || true
+          gh release create latest sony-tv-remote.apk --target "$GITHUB_SHA" \
+            --title "Sony TV Remote (latest build)" \
+            --notes "Build of commit $GITHUB_SHA. Download sony-tv-remote.apk below and install it."
