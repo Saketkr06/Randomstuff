@@ -11,6 +11,8 @@ import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
 import android.net.wifi.WifiManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.view.Gravity
 import android.view.KeyEvent
@@ -30,6 +32,7 @@ class MainActivity : Activity() {
     private lateinit var keyBox: EditText
     private lateinit var status: TextView
     private lateinit var ytBox: EditText
+    private lateinit var tvState: TextView
 
     @Volatile private var host = ""
     @Volatile private var key = "0000"
@@ -138,6 +141,15 @@ class MainActivity : Activity() {
                 textSize = 14f
                 setTextColor(c("#B8B5FF"))
             })
+            // Live line: whether the TV is on, and what it is playing.
+            tvState = TextView(context).apply {
+                text = "● Checking…"
+                textSize = 16f
+                typeface = Typeface.DEFAULT_BOLD
+                setTextColor(c("#B8B5FF"))
+                setPadding(0, dp(10), 0, 0)
+            }
+            addView(tvState)
         }
 
         // Phones: one column. Tablets, foldables and landscape (600dp or wider): two columns.
@@ -203,6 +215,83 @@ class MainActivity : Activity() {
             press(if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) "Vol +" else "Vol -")
         }
         return true
+    }
+
+    // ---------- TV status: power and what is playing ----------
+
+    private val handler = Handler(Looper.getMainLooper())
+    private var polling = false
+    @Volatile private var checking = false
+    private val poll = object : Runnable {
+        override fun run() {
+            if (!polling) return
+            refreshStatus()
+            handler.postDelayed(this, 5000)
+        }
+    }
+
+    // Checks every 5 seconds, only while the app is on screen.
+    override fun onResume() {
+        super.onResume()
+        polling = true
+        handler.post(poll)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        polling = false
+        handler.removeCallbacks(poll)
+    }
+
+    private fun showState(text: String, colour: String) = runOnUiThread {
+        tvState.text = "● $text"
+        tvState.setTextColor(c(colour))
+    }
+
+    private fun refreshStatus() {
+        host = hostBox.text.toString().trim()
+        key = keyBox.text.toString().trim()
+        if (host.isEmpty()) {
+            showState("Enter the TV address", "#B8B5FF")
+            return
+        }
+        if (checking) return // the last check is still waiting for the TV
+        checking = true
+        Thread {
+            val (text, colour) = try {
+                val power = bravia("system", "getPowerStatus").getJSONArray("result").getJSONObject(0).getString("status")
+                if (power == "active") Pair("On · " + nowPlaying(), "#7CFFCB") else Pair("Standby", "#FFB74D")
+            } catch (e: Exception) {
+                if (e.message?.contains("pre-shared") == true) Pair("Check the pre-shared key", "#FF6B81")
+                else Pair("Off or not reachable", "#FF6B81")
+            }
+            checking = false
+            showState(text, colour)
+        }.start()
+    }
+
+    // Live TV and HDMI inputs report their name. Apps such as Netflix report nothing through
+    // Sony's network control, so those show as "Home screen or an app". YouTube started from
+    // this app is detected through the casting service.
+    private fun nowPlaying(): String {
+        try {
+            val info = bravia("avContent", "getPlayingContentInfo").getJSONArray("result").getJSONObject(0)
+            val parts = listOf(info.optString("title"), info.optString("programTitle")).filter { it.isNotEmpty() }.distinct()
+            if (parts.isNotEmpty()) return parts.joinToString(" · ")
+            val source = info.optString("source")
+            if (source.isNotEmpty()) return source
+        } catch (e: Exception) {
+            // not a channel or input; try the next check
+        }
+        val dial = prefs.getString("dial_$host", null)
+        if (dial != null) {
+            try {
+                if (http("GET", dial + "YouTube").body.contains("<state>running</state>")) return "YouTube"
+            } catch (e: Exception) {
+                // casting service did not answer
+            }
+        }
+        return "Home screen or an app"
     }
 
     // ---------- look and feel ----------

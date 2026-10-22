@@ -55,6 +55,7 @@ What to expect:
 - **Cast phone screen** opens the phone's own screen mirroring list (Smart View or Cast). Choose your television there.
 - **Share to TV:** in the YouTube app, a browser, or a chat, tap Share on a YouTube link and choose "Sony TV Remote". The video starts on the television. This works for YouTube links only.
 - **Phone volume buttons** change the television volume while the app is open on screen.
+- **Television status:** the coloured line under the title shows whether the television is on, in standby, or off, and what it is playing. It updates every few seconds while the app is open. For a channel or a video input it shows the name. For YouTube started from this app it says YouTube. For other apps, such as Netflix, Sony's network control does not say what they play, so it shows "Home screen or an app".
 
 ## If something does not work
 
