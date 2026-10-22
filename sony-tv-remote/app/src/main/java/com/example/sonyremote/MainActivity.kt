@@ -4,6 +4,11 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.RippleDrawable
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.provider.Settings
@@ -50,77 +55,123 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val pad = (16 * resources.displayMetrics.density).toInt()
+        window.statusBarColor = c("#0F0C29")
+        window.navigationBarColor = c("#24243E")
+        val pad = dp(16)
 
-        hostBox = EditText(this).apply {
+        hostBox = field(EditText(this)).apply {
             hint = "TV address, e.g. 192.168.1.20"
             setText(prefs.getString("host", ""))
         }
-        keyBox = EditText(this).apply {
+        keyBox = field(EditText(this)).apply {
             hint = "Pre-shared key"
             setText(prefs.getString("key", "0000"))
         }
-        status = TextView(this).apply { text = "Enter the TV address, or tap Find TV." }
+        status = TextView(this).apply {
+            text = "Enter the TV address, or tap Find TV."
+            textSize = 14f
+            setTextColor(c("#7CFFCB"))
+            setPadding(dp(14), dp(10), dp(14), dp(10))
+            background = GradientDrawable().apply {
+                setColor(Color.argb(40, 124, 255, 203))
+                cornerRadius = dp(14).toFloat()
+            }
+        }
         // Fixed ids let Android restore typed text after the phone is rotated.
-        val textBox = EditText(this).apply { id = 101; hint = "Text to type on the TV" }
-        ytBox = EditText(this).apply { id = 102; hint = "YouTube link or video id" }
+        val textBox = field(EditText(this)).apply { id = 101; hint = "Text to type on the TV" }
+        ytBox = field(EditText(this)).apply { id = 102; hint = "YouTube link or video id" }
 
         // Left panel: connection and navigation. Right panel: everything else.
-        val left = column().apply {
-            addView(hostBox)
-            addView(keyBox)
-            addView(status)
-            addView(row(
-                btn("Find TV") { findTv() },
-                btn("Power on") { act { bravia("system", "setPowerStatus", """{"status":true}"""); say("Power on sent") } },
-                btn("Power off") { act { bravia("system", "setPowerStatus", """{"status":false}"""); say("Power off sent") } }
-            ))
-            addView(row(Space(context), btn("▲", true) { press("Up") }, Space(context)))
-            addView(row(btn("◀", true) { press("Left") }, btn("OK", true) { press("OK") }, btn("▶", true) { press("Right") }))
-            addView(row(Space(context), btn("▼", true) { press("Down") }, Space(context)))
-            addView(row(btn("Back") { press("Back") }, btn("Home") { press("Home") }, btn("Input") { press("Input") }))
-        }
-        val right = column().apply {
-            addView(row(btn("Vol -") { press("Vol -") }, btn("Mute") { press("Mute") }, btn("Vol +") { press("Vol +") }))
-            addView(row(btn("Play") { press("Play") }, btn("Pause") { press("Pause") }, btn("Apps") { showApps() }))
-            addView(textBox)
-            addView(btn("Send text to TV") {
-                val t = textBox.text.toString()
-                act { bravia("appControl", "setTextForm", JSONObject.quote(t)); say("Text sent") }
-            })
-            addView(ytBox)
-            addView(btn("Play YouTube on TV") { youtube(ytBox.text.toString()) })
-            addView(btn("Cast phone screen") {
-                try {
-                    startActivity(Intent(Settings.ACTION_CAST_SETTINGS))
-                } catch (e: Exception) {
-                    say("Open your phone's quick settings and tap Smart View or Cast.")
+        val left = panel(
+            card(
+                "CONNECTION", hostBox, keyBox, status,
+                row(
+                    btn("Find TV", "find") { findTv() },
+                    btn("Power on", "on") { act { bravia("system", "setPowerStatus", """{"status":true}"""); say("Power on sent") } },
+                    btn("Power off", "off") { act { bravia("system", "setPowerStatus", """{"status":false}"""); say("Power off sent") } }
+                )
+            ),
+            card(
+                "NAVIGATE",
+                row(Space(this), btn("▲", "glass", true) { press("Up") }, Space(this)),
+                row(btn("◀", "glass", true) { press("Left") }, btn("OK", "ok", true) { press("OK") }, btn("▶", "glass", true) { press("Right") }),
+                row(Space(this), btn("▼", "glass", true) { press("Down") }, Space(this)),
+                row(btn("Back", "back") { press("Back") }, btn("Home", "home") { press("Home") }, btn("Input", "input") { press("Input") })
+            )
+        )
+        val right = panel(
+            card(
+                "VOLUME & PLAYBACK",
+                row(btn("Vol −", "vol") { press("Vol -") }, btn("Mute", "mute") { press("Mute") }, btn("Vol +", "vol") { press("Vol +") }),
+                row(btn("▶ Play", "play") { press("Play") }, btn("⏸ Pause", "pause") { press("Pause") }, btn("Apps", "apps") { showApps() })
+            ),
+            card(
+                "TYPE ON TV", textBox,
+                btn("Send to TV", "send") {
+                    val t = textBox.text.toString()
+                    act { bravia("appControl", "setTextForm", JSONObject.quote(t)); say("Text sent") }
                 }
+            ),
+            card(
+                "PLAY ON TV", ytBox,
+                btn("▶ Play YouTube on TV", "yt") { youtube(ytBox.text.toString()) },
+                btn("Cast phone screen", "cast") {
+                    try {
+                        startActivity(Intent(Settings.ACTION_CAST_SETTINGS))
+                    } catch (e: Exception) {
+                        say("Open your phone's quick settings and tap Smart View or Cast.")
+                    }
+                }
+            )
+        )
+
+        val header = column().apply {
+            setPadding(dp(6), dp(4), dp(6), dp(14))
+            addView(TextView(context).apply {
+                text = "Sony TV Remote"
+                textSize = 28f
+                typeface = Typeface.DEFAULT_BOLD
+                setTextColor(Color.WHITE)
+            })
+            addView(TextView(context).apply {
+                text = "Your Bravia, in your pocket"
+                textSize = 14f
+                setTextColor(c("#B8B5FF"))
             })
         }
 
         // Phones: one column. Tablets, foldables and landscape (600dp or wider): two columns.
         val widthDp = resources.configuration.screenWidthDp
         val wide = widthDp >= 600
-        val content = LinearLayout(this).apply {
+        val body = LinearLayout(this).apply {
             orientation = if (wide) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
-            setPadding(pad, pad, pad, pad)
         }
-        for (panel in listOf(left, right)) {
-            content.addView(
-                panel,
-                if (wide) LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                    setMargins(pad / 2, 0, pad / 2, 0)
-                } else LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        for (p in listOf(left, right)) {
+            body.addView(
+                p,
+                if (wide) LinearLayout.LayoutParams(0, wrap, 1f).apply { setMargins(dp(6), 0, dp(6), 0) }
+                else LinearLayout.LayoutParams(fill, wrap)
             )
+        }
+        val page = column().apply {
+            setPadding(pad, pad, pad, pad)
+            addView(header)
+            addView(body)
         }
 
         // Never stretch wider than 900dp; centre the content on very large screens.
         val widthPx = minOf(dp(widthDp), dp(900))
         val holder = FrameLayout(this).apply {
-            addView(content, FrameLayout.LayoutParams(widthPx, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL))
+            addView(page, FrameLayout.LayoutParams(widthPx, wrap, Gravity.CENTER_HORIZONTAL))
         }
-        setContentView(ScrollView(this).apply { isFillViewport = true; addView(holder) })
+        setContentView(ScrollView(this).apply {
+            isFillViewport = true
+            background = GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
+                intArrayOf(c("#0F0C29"), c("#302B63"), c("#24243E"))
+            )
+            addView(holder)
+        })
 
         // Only on a fresh start, so rotating the phone does not replay the video.
         if (savedInstanceState == null) handleShare(intent)
@@ -154,28 +205,101 @@ class MainActivity : Activity() {
         return true
     }
 
-    // ---------- small helpers ----------
+    // ---------- look and feel ----------
+
+    private val fill = ViewGroup.LayoutParams.MATCH_PARENT
+    private val wrap = ViewGroup.LayoutParams.WRAP_CONTENT
 
     private fun dp(n: Int) = (n * resources.displayMetrics.density).toInt()
 
+    private fun c(hex: String) = Color.parseColor(hex)
+
     private fun column() = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
 
-    // Buttons keep a comfortable touch height; the arrow pad uses taller ones.
-    private fun btn(label: String, tall: Boolean = false, onClick: () -> Unit) =
-        Button(this).apply {
+    // A column of cards with space between them.
+    private fun panel(vararg cards: View) = column().apply {
+        cards.forEach { addView(it, LinearLayout.LayoutParams(fill, wrap).apply { bottomMargin = dp(12) }) }
+    }
+
+    // A frosted rounded card with a small coloured title.
+    private fun card(title: String, vararg views: View) = column().apply {
+        background = GradientDrawable().apply {
+            setColor(Color.argb(38, 255, 255, 255))
+            cornerRadius = dp(24).toFloat()
+            setStroke(dp(1), Color.argb(60, 255, 255, 255))
+        }
+        setPadding(dp(14), dp(12), dp(14), dp(14))
+        addView(TextView(context).apply {
+            text = title
+            textSize = 12f
+            letterSpacing = 0.12f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(c("#B8B5FF"))
+            setPadding(dp(4), 0, 0, dp(6))
+        })
+        views.forEach { addView(it, LinearLayout.LayoutParams(fill, wrap).apply { setMargins(0, dp(3), 0, dp(3)) }) }
+    }
+
+    // A dark rounded text box with a soft outline.
+    private fun field(e: EditText) = e.apply {
+        setTextColor(Color.WHITE)
+        setHintTextColor(Color.argb(130, 255, 255, 255))
+        textSize = 15f
+        isSingleLine = true
+        setPadding(dp(14), dp(12), dp(14), dp(12))
+        background = GradientDrawable().apply {
+            setColor(Color.argb(70, 0, 0, 0))
+            cornerRadius = dp(14).toFloat()
+            setStroke(dp(1), Color.argb(50, 255, 255, 255))
+        }
+    }
+
+    // Rounded gradient buttons. The style name picks the colours; "tall" is for the arrow pad.
+    private fun btn(label: String, style: String, tall: Boolean = false, onClick: () -> Unit): Button {
+        val (from, to, darkText) = when (style) {
+            "find" -> Triple("#00C6FF", "#0072FF", false)
+            "on" -> Triple("#11998E", "#38EF7D", true)
+            "off" -> Triple("#FF416C", "#FF4B2B", false)
+            "ok" -> Triple("#F857A6", "#FF5858", false)
+            "back" -> Triple("#667EEA", "#764BA2", false)
+            "home" -> Triple("#FC5C7D", "#6A82FB", false)
+            "input" -> Triple("#00B4DB", "#0083B0", false)
+            "vol" -> Triple("#43CEA2", "#185A9D", false)
+            "mute" -> Triple("#757F9A", "#4B5670", false)
+            "play" -> Triple("#56AB2F", "#A8E063", true)
+            "pause" -> Triple("#F12711", "#F5AF19", false)
+            "apps" -> Triple("#8E2DE2", "#4A00E0", false)
+            "send" -> Triple("#4776E6", "#8E54E9", false)
+            "yt" -> Triple("#FF0000", "#B20000", false)
+            "cast" -> Triple("#00C9FF", "#92FE9D", true)
+            else -> Triple("#4B4590", "#35306E", false) // "glass": arrow keys
+        }
+        val shape = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(c(from), c(to))).apply {
+            cornerRadius = dp(if (tall) 28 else 18).toFloat()
+        }
+        return Button(this).apply {
             text = label
+            isAllCaps = false
+            typeface = Typeface.DEFAULT_BOLD
+            textSize = if (tall) 22f else 15f
+            setTextColor(if (darkText) c("#1B1B2F") else Color.WHITE)
             minHeight = dp(if (tall) 72 else 52)
+            stateListAnimator = null
+            background = RippleDrawable(ColorStateList.valueOf(Color.argb(90, 255, 255, 255)), shape, null)
             setOnClickListener { onClick() }
         }
+    }
 
     private fun row(vararg views: View) = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
         views.forEach {
-            addView(it, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+            addView(it, LinearLayout.LayoutParams(0, wrap, 1f).apply {
                 setMargins(dp(4), dp(4), dp(4), dp(4))
             })
         }
     }
+
+    // ---------- small helpers ----------
 
     private fun say(t: String) = runOnUiThread { status.text = t }
 
@@ -328,7 +452,7 @@ class MainActivity : Activity() {
             }
             runOnUiThread {
                 status.text = "Pick your TV."
-                AlertDialog.Builder(this)
+                AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
                     .setTitle("Devices found")
                     .setItems(labels.toTypedArray()) { _, i -> hostBox.setText(ips[i]); save() }
                     .show()
@@ -341,7 +465,7 @@ class MainActivity : Activity() {
         val titles = (0 until list.length()).map { list.getJSONObject(it).getString("title") }
         val uris = (0 until list.length()).map { list.getJSONObject(it).getString("uri") }
         runOnUiThread {
-            AlertDialog.Builder(this)
+            AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
                 .setTitle("Open on TV")
                 .setItems(titles.toTypedArray()) { _, i ->
                     bg {
