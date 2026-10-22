@@ -30,6 +30,21 @@ The app file is built for you by GitHub, so you do not need Android Studio.
 2. Allow "Install unknown apps" when the phone asks.
 3. Open "Sony TV Remote". Keep the phone on the same Wi-Fi network as the television.
 
+## Control the television from anywhere (Tailscale)
+
+Tailscale is a free app that links your own devices over the internet, privately and securely, as if they were on one Wi-Fi network. With it, the remote works when you are away from home.
+
+1. Install Tailscale from the Play Store on the television and sign in.
+2. Install Tailscale on your phone and sign in with the same account. Keep it turned on.
+3. While still at home on the television's Wi-Fi, open this app, tap "Find TV", and pick your television. This saves what the app needs for YouTube later.
+4. In the Tailscale app on the television, find the television's Tailscale address. It starts with `100.`.
+5. Away from home, type that address into the "TV address" box in this app.
+
+What to expect:
+- The remote buttons, volume, apps and typing work while the television is on.
+- You cannot switch the television on from outside, because it drops off Tailscale when it is off or in standby.
+- Sony's network control may refuse connections that arrive over Tailscale on some models. This has not been tested. If the buttons do nothing, the fix is to run Tailscale on an always-on device at home instead.
+
 ## Using the app
 
 - **Find TV** searches your Wi-Fi network and lets you pick the television. You can also type its address by hand.

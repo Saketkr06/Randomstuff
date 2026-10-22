@@ -454,7 +454,12 @@ class MainActivity : Activity() {
                 status.text = "Pick your TV."
                 AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
                     .setTitle("Devices found")
-                    .setItems(labels.toTypedArray()) { _, i -> hostBox.setText(ips[i]); save() }
+                    .setItems(labels.toTypedArray()) { _, i ->
+                        hostBox.setText(ips[i])
+                        save()
+                        // Save the TV's casting address now, so YouTube also works away from home.
+                        bg { try { dialUrl() } catch (e: Exception) { /* checked again when YouTube is used */ } }
+                    }
                     .show()
             }
         }
@@ -477,14 +482,33 @@ class MainActivity : Activity() {
         }
     }
 
-    // The TV tells us the address of its casting service; we remember it per TV.
+    // Tailscale gives every device an address from 100.64.0.0 to 100.127.255.255.
+    private fun isTailscale(h: String): Boolean {
+        val p = h.split(".").mapNotNull { it.toIntOrNull() }
+        return p.size == 4 && p[0] == 100 && p[1] in 64..127
+    }
+
+    // The TV tells us the address of its casting service, and we remember it. We also keep
+    // just the port and path, so away from home (over Tailscale, where the Wi-Fi search
+    // cannot work) the same service can be reached on the TV's Tailscale address.
     private fun dialUrl(): String {
         prefs.getString("dial_$host", null)?.let { return it }
-        val loc = ssdp()[host] ?: throw Exception("TV did not answer the search. Same Wi-Fi?")
+        val tail = prefs.getString("dial_tail", null)
+        if (isTailscale(host) && tail != null) {
+            val remote = "http://$host$tail"
+            prefs.edit().putString("dial_$host", remote).apply()
+            return remote
+        }
+        val loc = ssdp()[host] ?: throw Exception(
+            if (isTailscale(host)) "Once, while at home on the TV's Wi-Fi, tap Find TV and pick your TV. That saves its casting address."
+            else "TV did not answer the search. Same Wi-Fi?"
+        )
         val url = http("GET", loc).header("Application-URL")
             ?: throw Exception("This TV does not offer YouTube casting.")
         val full = if (url.endsWith("/")) url else "$url/"
-        prefs.edit().putString("dial_$host", full).apply()
+        val u = URL(full)
+        val port = if (u.port == -1) "" else ":${u.port}"
+        prefs.edit().putString("dial_$host", full).putString("dial_tail", "$port${u.path}").apply()
         return full
     }
 
