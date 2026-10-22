@@ -8,6 +8,7 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.RippleDrawable
 import android.net.wifi.WifiManager
 import android.os.Bundle
@@ -15,6 +16,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.view.Gravity
+import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
@@ -99,9 +101,7 @@ class MainActivity : Activity() {
             ),
             card(
                 "NAVIGATE",
-                row(Space(this), btn("▲", "glass", true) { press("Up") }, Space(this)),
-                row(btn("◀", "glass", true) { press("Left") }, btn("OK", "ok", true) { press("OK") }, btn("▶", "glass", true) { press("Right") }),
-                row(Space(this), btn("▼", "glass", true) { press("Down") }, Space(this)),
+                dpad(),
                 row(btn("Back", "back") { press("Back") }, btn("Home", "home") { press("Home") }, btn("Input", "input") { press("Input") })
             )
         )
@@ -131,41 +131,69 @@ class MainActivity : Activity() {
             )
         )
 
-        val header = column().apply {
-            setPadding(dp(6), dp(4), dp(6), dp(14))
+        // Live pill: whether the TV is on, and what it is playing. Its colour follows the state.
+        tvState = TextView(this).apply {
+            text = "● Checking…"
+            textSize = 15f
+            maxLines = 2
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(c("#B8B5FF"))
+            setPadding(dp(16), dp(10), dp(16), dp(10))
+            background = GradientDrawable().apply {
+                setColor(Color.argb(46, 184, 181, 255))
+                cornerRadius = dp(22).toFloat()
+            }
+        }
+        // Small button showing how we are connected; tap it to switch.
+        modeChip = TextView(this).apply {
+            textSize = 13f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(Color.WHITE)
+            setPadding(dp(14), dp(10), dp(14), dp(10))
+            background = GradientDrawable().apply {
+                setColor(Color.argb(60, 255, 255, 255))
+                cornerRadius = dp(22).toFloat()
+            }
+            setOnClickListener { showModeDialog() }
+        }
+        val logo = ImageView(this).apply {
+            setImageResource(R.drawable.ic_launcher_foreground)
+            setPadding(dp(4), dp(4), dp(4), dp(4))
+            background = GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
+                intArrayOf(c("#302B63"), c("#F857A6"))
+            ).apply { cornerRadius = dp(20).toFloat() }
+        }
+        val titles = column().apply {
             addView(TextView(context).apply {
                 text = "Sony TV Remote"
-                textSize = 28f
+                textSize = 26f
                 typeface = Typeface.DEFAULT_BOLD
                 setTextColor(Color.WHITE)
             })
             addView(TextView(context).apply {
                 text = "Your Bravia, in your pocket"
-                textSize = 14f
+                textSize = 13f
                 setTextColor(c("#B8B5FF"))
             })
-            // Live line: whether the TV is on, and what it is playing.
-            tvState = TextView(context).apply {
-                text = "● Checking…"
-                textSize = 16f
-                typeface = Typeface.DEFAULT_BOLD
-                setTextColor(c("#B8B5FF"))
-                setPadding(0, dp(10), 0, 0)
-            }
-            addView(tvState)
-            // Small button showing how we are connected; tap it to switch.
-            modeChip = TextView(context).apply {
-                textSize = 13f
-                typeface = Typeface.DEFAULT_BOLD
-                setTextColor(Color.WHITE)
-                setPadding(dp(14), dp(7), dp(14), dp(7))
-                background = GradientDrawable().apply {
-                    setColor(Color.argb(60, 255, 255, 255))
-                    cornerRadius = dp(20).toFloat()
-                }
-                setOnClickListener { showModeDialog() }
-            }
-            addView(modeChip, LinearLayout.LayoutParams(wrap, wrap).apply { topMargin = dp(10) })
+        }
+        val header = column().apply {
+            setPadding(dp(6), dp(4), dp(6), dp(14))
+            addView(LinearLayout(context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                addView(logo, LinearLayout.LayoutParams(dp(60), dp(60)))
+                addView(titles, LinearLayout.LayoutParams(0, wrap, 1f).apply { leftMargin = dp(14) })
+            })
+            addView(
+                LinearLayout(context).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = Gravity.CENTER_VERTICAL
+                    addView(tvState, LinearLayout.LayoutParams(0, wrap, 1f))
+                    addView(modeChip, LinearLayout.LayoutParams(wrap, wrap).apply { leftMargin = dp(10) })
+                },
+                LinearLayout.LayoutParams(fill, wrap).apply { topMargin = dp(14) }
+            )
             updateModeChip()
         }
 
@@ -195,10 +223,15 @@ class MainActivity : Activity() {
         }
         setContentView(ScrollView(this).apply {
             isFillViewport = true
-            background = GradientDrawable(
-                GradientDrawable.Orientation.TL_BR,
-                intArrayOf(c("#0F0C29"), c("#302B63"), c("#24243E"))
-            )
+            // Deep gradient with a soft pink glow top right and a blue glow bottom left.
+            background = LayerDrawable(arrayOf(
+                GradientDrawable(
+                    GradientDrawable.Orientation.TL_BR,
+                    intArrayOf(c("#0F0C29"), c("#302B63"), c("#24243E"))
+                ),
+                glow(Color.argb(110, 248, 87, 166), 0.95f, 0.05f),
+                glow(Color.argb(100, 0, 198, 255), 0.05f, 0.95f)
+            ))
             addView(holder)
         })
 
@@ -305,6 +338,10 @@ class MainActivity : Activity() {
     private fun showState(text: String, colour: String) = runOnUiThread {
         tvState.text = "● $text"
         tvState.setTextColor(c(colour))
+        tvState.background = GradientDrawable().apply {
+            setColor((c(colour) and 0x00FFFFFF) or (0x2E shl 24)) // same colour, see-through
+            cornerRadius = dp(22).toFloat()
+        }
     }
 
     private fun refreshStatus() {
@@ -434,7 +471,77 @@ class MainActivity : Activity() {
             minHeight = dp(if (tall) 72 else 52)
             stateListAnimator = null
             background = RippleDrawable(ColorStateList.valueOf(Color.argb(90, 255, 255, 255)), shape, null)
-            setOnClickListener { onClick() }
+            setOnClickListener {
+                it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                onClick()
+            }
+        }
+    }
+
+    // A soft coloured glow for the background, fading to see-through.
+    private fun glow(colour: Int, x: Float, y: Float) = GradientDrawable().apply {
+        gradientType = GradientDrawable.RADIAL_GRADIENT
+        setGradientCenter(x, y)
+        gradientRadius = dp(320).toFloat()
+        colors = intArrayOf(colour, Color.TRANSPARENT)
+    }
+
+    // A round direction pad like a real remote: four arrows around a big OK button.
+    private fun dpad(): View {
+        val ring = FrameLayout(this).apply {
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(Color.argb(45, 255, 255, 255))
+                setStroke(dp(1), Color.argb(70, 255, 255, 255))
+            }
+        }
+        fun arrow(label: String, key: String, place: Int) {
+            ring.addView(
+                TextView(this).apply {
+                    text = label
+                    textSize = 26f
+                    setTextColor(Color.WHITE)
+                    this.gravity = Gravity.CENTER
+                    background = RippleDrawable(
+                        ColorStateList.valueOf(Color.argb(110, 255, 255, 255)), null,
+                        GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Color.WHITE) }
+                    )
+                    setOnClickListener {
+                        it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                        press(key)
+                    }
+                },
+                FrameLayout.LayoutParams(dp(64), dp(64), place).apply { setMargins(dp(8), dp(8), dp(8), dp(8)) }
+            )
+        }
+        arrow("▲", "Up", Gravity.TOP or Gravity.CENTER_HORIZONTAL)
+        arrow("▼", "Down", Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL)
+        arrow("◀", "Left", Gravity.START or Gravity.CENTER_VERTICAL)
+        arrow("▶", "Right", Gravity.END or Gravity.CENTER_VERTICAL)
+        ring.addView(
+            TextView(this).apply {
+                text = "OK"
+                textSize = 22f
+                typeface = Typeface.DEFAULT_BOLD
+                setTextColor(Color.WHITE)
+                this.gravity = Gravity.CENTER
+                background = RippleDrawable(
+                    ColorStateList.valueOf(Color.argb(110, 255, 255, 255)),
+                    GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(c("#F857A6"), c("#FF5858")))
+                        .apply { shape = GradientDrawable.OVAL },
+                    null
+                )
+                setOnClickListener {
+                    it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                    press("OK")
+                }
+            },
+            FrameLayout.LayoutParams(dp(88), dp(88), Gravity.CENTER)
+        )
+        return FrameLayout(this).apply {
+            addView(ring, FrameLayout.LayoutParams(dp(232), dp(232), Gravity.CENTER_HORIZONTAL).apply {
+                setMargins(0, dp(6), 0, dp(6))
+            })
         }
     }
 
