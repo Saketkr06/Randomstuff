@@ -38,7 +38,7 @@ Tailscale is a free app that links your own devices over the internet, privately
 2. Install Tailscale on your phone and sign in with the same account. Keep it turned on.
 3. While still at home on the television's Wi-Fi, open this app, tap "Find TV", and pick your television. This saves what the app needs for YouTube later.
 4. In the Tailscale app on the television, find the television's Tailscale address. It starts with `100.`.
-5. Away from home, type that address into the "TV address" box in this app.
+5. Away from home, open this app and choose "Tailscale (away from home)" in the pop-up. Type the television's Tailscale address into the address box. The app remembers it separately from your home Wi-Fi address.
 
 What to expect:
 - The remote buttons, volume, apps and typing work while the television is on.
@@ -47,6 +47,7 @@ What to expect:
 
 ## Using the app
 
+- **Connection choice:** when the app opens, a pop-up asks whether to connect over the same Wi-Fi (at home) or over Tailscale (away from home). Each choice remembers its own television address. Tap the small button under the title to change it later. A YouTube link shared to the app skips the pop-up and uses the last choice.
 - **Find TV** searches your Wi-Fi network and lets you pick the television. You can also type its address by hand.
 - **Arrow buttons, OK, Back, Home, Input, volume, play, pause** work like the real remote.
 - **Apps** shows the apps installed on the television and opens the one you pick.

@@ -33,6 +33,8 @@ class MainActivity : Activity() {
     private lateinit var status: TextView
     private lateinit var ytBox: EditText
     private lateinit var tvState: TextView
+    private lateinit var modeChip: TextView
+    @Volatile private var mode = "wifi" // "wifi" = same Wi-Fi at home, "tailscale" = away from home
 
     @Volatile private var host = ""
     @Volatile private var key = "0000"
@@ -62,9 +64,10 @@ class MainActivity : Activity() {
         window.navigationBarColor = c("#24243E")
         val pad = dp(16)
 
+        mode = prefs.getString("mode", "wifi") ?: "wifi"
         hostBox = field(EditText(this)).apply {
-            hint = "TV address, e.g. 192.168.1.20"
-            setText(prefs.getString("host", ""))
+            hint = hostHint()
+            setText(loadHost())
         }
         keyBox = field(EditText(this)).apply {
             hint = "Pre-shared key"
@@ -150,6 +153,20 @@ class MainActivity : Activity() {
                 setPadding(0, dp(10), 0, 0)
             }
             addView(tvState)
+            // Small button showing how we are connected; tap it to switch.
+            modeChip = TextView(context).apply {
+                textSize = 13f
+                typeface = Typeface.DEFAULT_BOLD
+                setTextColor(Color.WHITE)
+                setPadding(dp(14), dp(7), dp(14), dp(7))
+                background = GradientDrawable().apply {
+                    setColor(Color.argb(60, 255, 255, 255))
+                    cornerRadius = dp(20).toFloat()
+                }
+                setOnClickListener { showModeDialog() }
+            }
+            addView(modeChip, LinearLayout.LayoutParams(wrap, wrap).apply { topMargin = dp(10) })
+            updateModeChip()
         }
 
         // Phones: one column. Tablets, foldables and landscape (600dp or wider): two columns.
@@ -185,8 +202,11 @@ class MainActivity : Activity() {
             addView(holder)
         })
 
-        // Only on a fresh start, so rotating the phone does not replay the video.
-        if (savedInstanceState == null) handleShare(intent)
+        // Only on a fresh start, so rotating the phone does not replay the video or ask again.
+        // A shared link goes straight to the TV using the last chosen connection.
+        if (savedInstanceState == null) {
+            if (intent?.action == Intent.ACTION_SEND) handleShare(intent) else showModeDialog()
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -215,6 +235,45 @@ class MainActivity : Activity() {
             press(if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) "Vol +" else "Vol -")
         }
         return true
+    }
+
+    // ---------- connection choice: same Wi-Fi or Tailscale ----------
+
+    private fun hostHint() =
+        if (mode == "wifi") "TV address, e.g. 192.168.1.20" else "TV's Tailscale address, starts with 100."
+
+    // Each choice remembers its own TV address. The old single address counts as the Wi-Fi one.
+    private fun loadHost(): String =
+        prefs.getString("host_$mode", if (mode == "wifi") prefs.getString("host", "") else "") ?: ""
+
+    private fun updateModeChip() {
+        modeChip.text = (if (mode == "wifi") "Same Wi-Fi" else "Tailscale") + "  ▾"
+    }
+
+    private fun setMode(m: String) {
+        save() // keep the address typed for the old choice
+        mode = m
+        prefs.edit().putString("mode", m).apply()
+        hostBox.hint = hostHint()
+        hostBox.setText(loadHost())
+        updateModeChip()
+        if (hostBox.text.isEmpty()) {
+            say(
+                if (m == "wifi") "Tap Find TV to pick your TV."
+                else "Type the TV's Tailscale address (it starts with 100.)."
+            )
+        }
+        save()
+        refreshStatus()
+    }
+
+    private fun showModeDialog() {
+        AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+            .setTitle("How do you want to connect?")
+            .setItems(arrayOf("Same Wi-Fi (at home)", "Tailscale (away from home)")) { _, i ->
+                setMode(if (i == 0) "wifi" else "tailscale")
+            }
+            .show()
     }
 
     // ---------- TV status: power and what is playing ----------
@@ -395,7 +454,7 @@ class MainActivity : Activity() {
     private fun save() {
         host = hostBox.text.toString().trim()
         key = keyBox.text.toString().trim()
-        prefs.edit().putString("host", host).putString("key", key).apply()
+        prefs.edit().putString("host_$mode", host).putString("key", key).apply()
     }
 
     private fun bg(block: () -> Unit) {
@@ -525,6 +584,10 @@ class MainActivity : Activity() {
     }
 
     private fun findTv() {
+        if (mode != "wifi") {
+            say("Find TV only works on the same Wi-Fi. Type the TV's Tailscale address (it starts with 100.) instead.")
+            return
+        }
         say("Searching…")
         bg {
             val found = ssdp()
