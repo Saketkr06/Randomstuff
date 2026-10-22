@@ -8,6 +8,7 @@ import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.provider.Settings
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
@@ -23,6 +24,7 @@ class MainActivity : Activity() {
     private lateinit var hostBox: EditText
     private lateinit var keyBox: EditText
     private lateinit var status: TextView
+    private lateinit var ytBox: EditText
 
     @Volatile private var host = ""
     @Volatile private var key = "0000"
@@ -61,7 +63,7 @@ class MainActivity : Activity() {
         status = TextView(this).apply { text = "Enter the TV address, or tap Find TV." }
         // Fixed ids let Android restore typed text after the phone is rotated.
         val textBox = EditText(this).apply { id = 101; hint = "Text to type on the TV" }
-        val ytBox = EditText(this).apply { id = 102; hint = "YouTube link or video id" }
+        ytBox = EditText(this).apply { id = 102; hint = "YouTube link or video id" }
 
         // Left panel: connection and navigation. Right panel: everything else.
         val left = column().apply {
@@ -119,6 +121,37 @@ class MainActivity : Activity() {
             addView(content, FrameLayout.LayoutParams(widthPx, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL))
         }
         setContentView(ScrollView(this).apply { isFillViewport = true; addView(holder) })
+
+        // Only on a fresh start, so rotating the phone does not replay the video.
+        if (savedInstanceState == null) handleShare(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleShare(intent)
+    }
+
+    // Sharing a YouTube link from any app (YouTube, browser, chat) plays it on the TV.
+    private fun handleShare(i: Intent?) {
+        if (i == null || i.action != Intent.ACTION_SEND) return
+        val shared = i.getStringExtra(Intent.EXTRA_TEXT) ?: return
+        ytBox.setText(shared)
+        youtube(shared)
+    }
+
+    // The phone's volume buttons control the TV volume while this app is open.
+    private var lastVolume = 0L
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode != KeyEvent.KEYCODE_VOLUME_UP && keyCode != KeyEvent.KEYCODE_VOLUME_DOWN) {
+            return super.onKeyDown(keyCode, event)
+        }
+        val now = System.currentTimeMillis()
+        if (now - lastVolume >= 150) { // holding the button repeats, but not faster than the TV can follow
+            lastVolume = now
+            press(if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) "Vol +" else "Vol -")
+        }
+        return true
     }
 
     // ---------- small helpers ----------

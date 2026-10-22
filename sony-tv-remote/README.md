@@ -36,6 +36,8 @@ The app file is built for you by GitHub, so you do not need Android Studio.
 - **Send text to TV** types into a search box that is open on the television.
 - **Play YouTube on TV** takes a YouTube link and plays it on the television.
 - **Cast phone screen** opens the phone's own screen mirroring list (Smart View or Cast). Choose your television there.
+- **Share to TV:** in the YouTube app, a browser, or a chat, tap Share on a YouTube link and choose "Sony TV Remote". The video starts on the television. This works for YouTube links only.
+- **Phone volume buttons** change the television volume while the app is open on screen.
 
 ## If something does not work
 
