@@ -6,11 +6,13 @@ This app turns your Android phone into a remote control for your Sony television
 
 The app talks to the television over your home Wi-Fi network. The television must allow this first.
 
-1. On the television, open Settings, then Network & Internet, then Home network setup, then IP control.
-2. Set Authentication to "Normal and Pre-Shared Key".
-3. Set a Pre-Shared Key. The app starts with the key `0000`. You can use any key, but type the same one in the app.
-4. Turn on "Simple IP control".
-5. In the same area, turn on "Remote start" so the phone can wake the television from standby.
+1. On the television, press the Quick Settings button (spanner icon), open Settings, then Network & Internet, then Home network setup (some models call it Local network setup), then IP control.
+2. Turn IP control on.
+3. Set Authentication to the choice that includes the Pre-Shared Key ("Pre-Shared Key" or "Normal and Pre-Shared Key").
+4. Choose Pre-Shared Key and enter a key. The app starts with the key `0000`. You can use any key, but type the same one in the app.
+5. Go back to Network & Internet, open Remote start, and choose "On (Powered on by apps)" so the phone can wake the television from standby.
+
+You do not need "Simple IP control". This app uses Sony's other network control methods.
 
 Menu names differ a little between models, so look for these words if the path above is not exact.
 
