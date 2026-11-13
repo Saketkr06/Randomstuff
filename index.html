@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chhath Ghat Radio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;800&family=Yatra+One&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a ghat at arghya time. Left = the stage (live scene + player), right = the 100 songs. One dark world, by choice. */
+:root{
+  --river:#170d2b;      /* night water, page background */
+  --ghat:#241438;       /* raised surfaces */
+  --step:#3a2352;       /* borders, hover */
+  --sindoor:#e8492d;    /* accent: playing, primary action */
+  --marigold:#ffb629;   /* highlight: ranks, new tag */
+  --thekua:#f6e7c8;     /* main text */
+  --smoke:#b9a6c9;      /* secondary text */
+  --display:"Yatra One","Mukta",system-ui,sans-serif;
+  --body:"Mukta",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--river);color:var(--thekua);font:400 16px/1.5 var(--body)}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 48px;display:grid;gap:24px}
+header h1{font:400 clamp(2rem,6vw,3.2rem)/1.1 var(--display);margin:0;color:var(--marigold);text-wrap:balance}
+header p{margin:6px 0 0;color:var(--smoke);max-width:60ch}
+.note{background:var(--ghat);border-left:4px solid var(--marigold);padding:10px 14px;border-radius:6px}
+.note[hidden]{display:none}
+.cols{display:grid;gap:24px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:900px){.cols{grid-template-columns:minmax(0,5fr) minmax(0,6fr);align-items:start}.stage{position:sticky;top:16px}}
+
+.stage{display:grid;gap:12px}
+.scene{position:relative;border-radius:14px 14px 0 0;overflow:hidden;background:var(--ghat)}
+.scene canvas{display:block;width:100%;aspect-ratio:16/8}
+.now{position:absolute;left:0;right:0;bottom:0;padding:28px 14px 10px;background:linear-gradient(transparent,rgba(12,6,24,.85))}
+.now b{display:block;font:400 1.35rem/1.2 var(--display);text-wrap:balance}
+.now span{color:var(--smoke);font-size:.9rem}
+.video{aspect-ratio:16/9;background:#000;border-radius:0 0 14px 14px;overflow:hidden;margin-top:-12px}
+.video iframe,.video>div{width:100%;height:100%;border:0;display:block}
+.ctrl{display:flex;gap:8px;flex-wrap:wrap}
+button,.chip{font:600 .95rem var(--body);color:var(--thekua);background:var(--ghat);border:1px solid var(--step);border-radius:999px;padding:8px 16px;cursor:pointer}
+button:hover,.chip:hover{background:var(--step)}
+button.main{background:var(--sindoor);border-color:var(--sindoor);color:#fff}
+button[aria-pressed="true"]{border-color:var(--marigold);color:var(--marigold)}
+:focus-visible{outline:2px solid var(--marigold);outline-offset:2px}
+
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.tools input{flex:1 1 180px;min-width:0;font:400 1rem var(--body);color:var(--thekua);background:var(--ghat);border:1px solid var(--step);border-radius:999px;padding:8px 16px}
+ol{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+li a{display:grid;grid-template-columns:2.2rem 88px minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 10px 6px 4px;border-radius:10px;text-decoration:none;border:1px solid transparent}
+li a:hover{background:var(--ghat)}
+li.on a{background:var(--ghat);border-color:var(--sindoor)}
+.rk{font:400 1.1rem var(--display);color:var(--marigold);text-align:center;font-variant-numeric:tabular-nums}
+li img{width:88px;aspect-ratio:16/9;object-fit:cover;border-radius:6px;background:var(--step);display:block}
+.ti{font-weight:600;line-height:1.25;overflow-wrap:anywhere}
+.ar{color:var(--smoke);font-size:.88rem;line-height:1.3}
+.meta{text-align:right;font-size:.88rem;color:var(--smoke);font-variant-numeric:tabular-nums;white-space:nowrap}
+.meta b{display:block;color:var(--thekua);font-weight:600}
+.new{display:inline-block;background:var(--marigold);color:#2a1500;font-weight:800;font-size:.7rem;border-radius:4px;padding:0 5px;margin-left:6px;vertical-align:1px}
+/* small bars on the playing row */
+.eq{display:none;gap:2px;height:14px;align-items:flex-end;justify-content:center}
+li.on .eq{display:flex}li.on .rk span{display:none}
+.eq i{width:3px;background:var(--sindoor);height:100%;transform-origin:bottom;animation:eq .9s ease-in-out infinite alternate}
+.eq i:nth-child(2){animation-delay:-.3s}.eq i:nth-child(3){animation-delay:-.6s}
+body:not(.playing) .eq i{animation-play-state:paused}
+@keyframes eq{from{transform:scaleY(.25)}to{transform:scaleY(1)}}
+.empty{color:var(--smoke);padding:16px}
+footer{color:var(--smoke);font-size:.88rem;max-width:70ch}
+@media(max-width:480px){li a{grid-template-columns:1.8rem 64px minmax(0,1fr)}li img{width:64px}.meta{grid-column:3;text-align:left}.meta b{display:inline;margin-right:8px}}
+@media(prefers-reduced-motion:reduce){.eq i{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>छठ घाट रेडियो</h1>
+    <p>The loudspeaker on the bamboo pole at the ghat, now on your screen. 100 Chhath Puja songs, ranked by YouTube views. Every song gets its own ghat scene: its own sun, sky, diyas and beat.</p>
+  </header>
+  <p class="note" id="filenote" hidden>YouTube does not allow its player on a page opened straight from a file. Put this file on any web host (GitHub Pages works) and the songs will play right here. Until then, each song opens on YouTube.</p>
+  <div class="cols">
+    <section class="stage" aria-label="Player">
+      <div>
+        <div class="scene">
+          <canvas id="cv" aria-hidden="true"></canvas>
+          <div class="now"><b id="nt"></b><span id="na"></span></div>
+        </div>
+        <div class="video"><div id="player"></div></div>
+      </div>
+      <div class="ctrl">
+        <button id="prev">Previous</button>
+        <button id="play" class="main">Tune in</button>
+        <button id="next">Next</button>
+        <button id="shuf" aria-pressed="false">Shuffle</button>
+        <a class="chip" id="pl" target="_blank" rel="noopener" style="text-decoration:none">Top 50 as a YouTube playlist</a>
+      </div>
+      <p class="note" id="err" hidden></p>
+    </section>
+    <section aria-label="Songs">
+      <div class="tools">
+        <button class="chip" data-f="all" aria-pressed="true">All 100</button>
+        <button class="chip" data-f="cr" aria-pressed="false">1 crore+ views</button>
+        <button class="chip" data-f="new" aria-pressed="false">New this season</button>
+        <input id="q" type="search" placeholder="Search song or singer" aria-label="Search song or singer">
+      </div>
+      <ol id="list"></ol>
+    </section>
+  </div>
+  <footer>View counts are from YouTube on 13 November 2026, shown in lakh (L) and crore (Cr). Songs marked New were released in the last 12 months. All videos play from their official YouTube uploads.</footer>
+</div>
+
+<script>
+// [videoId, views in lakh, length, new?, song, singer or channel]
+const S=[
+["6e6Hp6R5SVU",3352,"5:53",0,"Uga Hai Suraj Dev","Anuradha Paudwal"],
+["BKoD7bTLc2k",2450,"5:27",0,"Jode Jode Falwa","Pawan Singh"],
+["054aYEl728U",1747,"6:07",0,"Rovele Banjhiniya","Akshara Singh"],
+["fCuHD3YBQKY",1732,"4:29",0,"Chhath Ghate Chali","Khesari Lal Yadav, Antra Singh Priyanka"],
+["aLbXQ9VIxKI",1435,"5:40",0,"Chhath Mai Ke Baratiya","Khesari Lal Yadav"],
+["Eyq7vfxu4iA",1392,"5:39",0,"Kaanch Hi Baans Ke Bahangiya","Anuradha Paudwal"],
+["wXv2MyuVOZQ",1378,"6:35",0,"Chahi Nahi An Dhan Khajanwa","Arvind Akela Kallu, Nisha"],
+["aAnoW6E3M1o",1271,"6:12",0,"Sawa Lakh Ke Saree Bheeje","Anu Dubey"],
+["Kc0D3A5Rcd8",1178,"4:05",0,"Chhapra Mein Chhath Manayenge","Khesari Lal Yadav, Kajal Raghwani"],
+["knZ8b5YnQiY",1148,"8:35",0,"Kelwa Ke Paat Par (New Version)","T-Series Bhakti Sagar"],
+["7R9tDvnAfMo",915,"6:09",0,"Kaanch Hi Baans Ke Bahangiya","Arvind Akela Kallu"],
+["W-GPLC-Lt6Y",914,"5:40",0,"Kareli Chhathi Mai Ke Vrat","Kalpana Patowary"],
+["lnj52n6k9-A",867,"4:03",0,"Ghare Ghare Hota Chhathi Mai Ke Baratiya","Amrapali Dubey"],
+["YjX78e66enk",845,"4:00",0,"Patna Ke Ghat Neek Lagela","Khesari Lal Yadav"],
+["DG8F-csoRAQ",823,"7:01",0,"Pahile Pahil Chhathi Maiya","Sharda Sinha"],
+["KvOeeZB1_70",796,"3:55",0,"Mai Ghare Rowat Hoihe","Pawan Singh"],
+["Yz1XBzbaSoM",753,"4:44",0,"Jai Chhathi Maiya","Sonu Nigam, Pawan Singh, Khushboo Jain"],
+["epQB_o53AX8",739,"7:27",0,"Patna Se Nimbua Mangaini","Anu Dubey"],
+["jRsXRee52xw",688,"6:43",0,"Maarbo Re Sugwa Dhanukh Se","Anuradha Paudwal"],
+["cQ2eX4SrkNg",686,"9:56",0,"Pahile Pahile Baani Kaile Chhathi Maiya","Dinesh Lal Yadav, Amrapali Dubey"],
+["JXnbpAY3igM",666,"4:41",0,"Making Ke Fera Aragh Ke Bera","Khesari Lal Yadav"],
+["KWvgJvM2zT0",598,"6:54",0,"Ho Deenanath (New Version)","Sharda Sinha"],
+["FCRb4kjnRx4",584,"3:31",0,"Chhathi Maiya (The VVAAN)","Zee Music Company"],
+["zaUyuCUTbyA",580,"6:54",0,"Paramparik Chhath Geet","Pawan Singh"],
+["fOVGz9WFymU",577,"3:47",0,"Ho Deenanath","Sharda Sinha"],
+["YVrZBmI9_ag",548,"6:26",0,"Kopi Kopi Boleli","Devi"],
+["9hwAiJ4fzog",530,"4:37",0,"Koshiya Bharaye Lagal","Neelkamal Singh, Priyanka Singh"],
+["6diXoexNQ58",530,"4:37",0,"Chhathi Mai Ke Ghatwa Pe Aajan Baajan","Pawan Singh"],
+["BktbNj2TzPs",504,"6:37",0,"Kopi Kopi Boleli Chhathi Maiya","Anu Dubey"],
+["WsvuH5QO23I",502,"8:47",0,"Kelwa Ke Paat Par","Devi"],
+["G7bD1QSIxtM",456,"6:16",0,"Babua Je Rahte Mai","Pawan Singh"],
+["4JdNlcumkoM",454,"3:14",0,"Piyari Pahir La","Pawan Singh, Shivani Singh"],
+["8BfbY0vb7Ro",448,"5:45",0,"Aahe Aaditmal","Karina Pandey, Sovita Pandey"],
+["IKAJdLAviYw",412,"3:54",0,"Ghunti Bhar Mor Dhoti Bheeje","Khesari Lal Yadav"],
+["FGQ0SCK1AtE",398,"5:56",0,"Ugi He Dinanath","Kalpana Patowary"],
+["-mpGoG0nWPo",397,"8:25",0,"Kelwa Ke Paat Par","Sharda Sinha"],
+["SWCcS09lV7w",392,"7:30",0,"Orie Orie Madhu Chuve","Pawan Singh"],
+["qPPhTg0WBMw",392,"5:23",0,"Kaanch Hi Baans Ke Bahangiya","Akshara Singh"],
+["G3PMFpftpbg",391,"5:15",0,"Jode Jode Supwa Tora Chadhaibo","Kalpana Patowary"],
+["C7SM6nuEMIk",391,"5:16",0,"Kekra Khatir Bhukhelu Chhathwa","Arvind Akela Kallu"],
+["oqi4EdCAGIM",383,"4:23",0,"Dhaniya Hamar Naya Baadi Ho","Pawan Singh"],
+["Z752z_dAQrY",368,"3:58",0,"Nariyal","Khesari Lal Yadav, Shilpi Raj"],
+["UnBc9RUmwKM",362,"4:09",0,"Chhath Kare Aai","Ritesh Pandey, Antra Singh"],
+["j9G3caThH98",345,"5:19",0,"Uthau Suruj Bhaile Bihaan","Sharda Sinha"],
+["uWtMR3iQT-I",345,"4:27",0,"Kerwa Ke Patwa Pe Newta","Pawan Singh"],
+["z3TKq9LVbzM",342,"4:39",0,"Ugi Suruj Dev","Pawan Singh"],
+["MEnyozGodAU",317,"9:01",0,"Baanjhi Kewdwa Dhaile Thaadh","Sharda Sinha"],
+["WlMzDuy1dy8",306,"6:17",0,"Bhail Araghiya Ke Ber","Arvind Akela Kallu, Nisha"],
+["qjzjmFIJemE",302,"4:33",0,"Kekar Ghar Ke Phulwa (Magahi)","Aashish Yadav"],
+["VkYrntXiEX8",300,"4:47",0,"Patna Ke Ghatwa Par Baaje","T-Series Bhakti Sagar"],
+["CZJYUCAO7lM",284,"5:27",0,"Jode Jode Falwa, Sitali Bayariya","Ansha Baby"],
+["V4_ZiIi68L0",261,"4:50",0,"Yug Yug Rakhiha Suhag He Chhathi Maiya","Kalpana Patowary"],
+["Pc3-aAmY47k",255,"3:49",0,"Hoihe Sahaiya","Pramod Premi Yadav"],
+["k8Cmfe5HsF8",250,"3:40",0,"Army Lover Pa Kripa Kadi Chhathi Maiya","Tuntun Yadav, Shilpi Raj"],
+["X7Y3OX6TY4U",240,"5:33",0,"Aadit Manaila","Anuradha Paudwal"],
+["sIAgTGsgLHI",235,"5:39",0,"Kare Mai Kathin Baratiya","Swati Mishra"],
+["waKku0zzRyY",235,"6:19",0,"Kahanva Tohar Naihara Ge Dhobin","T-Series Bhakti Sagar"],
+["TZC1_Og2Pm0",234,"4:13",0,"Aso Chhath Karab Naihar Mein","Ankush Raja, Shilpi Raj"],
+["yt_8_NaCWGk",227,"6:15",0,"Rauwa Se Ehe Hathjoriya","Pawan Singh"],
+["JG-qK3vgI_o",225,"6:14",0,"Ugi He Dinanath (Chhath Special)","Kalpana Patowary"],
+["A3Xhfnmk4y4",223,"5:58",0,"Aragh Mora Lei Lihin","Pink Music Bhojpuri"],
+["4B7Epg85nfI",222,"6:11",0,"Hey Ganga Maiya","Sharda Sinha"],
+["38mTaX7LkgY",218,"3:42",0,"Chala Ganga Kinare","Khesari Lal Yadav"],
+["OrlnX9zM5-k",213,"5:09",0,"Chhathi Maiya Bulaye","Vishal Mishra, Kaushal Kishore"],
+["px11PiCUUy8",211,"5:13",0,"Ugi Hey Dinanath","Swati Mishra"],
+["slbFmUj2l-M",205,"3:33",0,"Chhathi Maiya","Khesari Lal Yadav, Antra Singh"],
+["B3jDGu4fy-w",202,"4:08",0,"Chhath Kaili Kaniya","Arvind Akela Kallu"],
+["27ql9apTxBU",197,"3:26",0,"Staron Ka Chhath","Arvind Akela Kallu, Antra Singh"],
+["NkDiSj9c1EA",196,"6:05",0,"Dukhwa Mitayin Chhathi Maiya","Sharda Sinha"],
+["T_YXL_blE3A",193,"4:50",0,"Darshan Dekhai Dihi","Kalpana Patowary"],
+["BZLSeOy5tyE",180,"3:36",0,"Bhukhlu Ta (Chhath Geet 2019)","Pramod Premi Yadav"],
+["H4l6ss-HkYk",179,"6:21",0,"Sanghe Jaayem Ae Balam Ji","T-Series Bhakti Sagar"],
+["e22S1dwxlkk",170,"7:42",0,"Buxar Ke Pakki Re Sadakiya","Arvind Akela Kallu"],
+["O4ARvvmllCA",165,"5:54",0,"Tohe Badka Bhaiya Ho","Sharda Sinha"],
+["cfGCFbzoInI",165,"3:26",0,"Saloni Ke Mummy Kathua Jaibu","Arvind Akela Kallu"],
+["oiuQgAJhcxk",161,"6:06",0,"Penhle Mahadev Piyariya","Pawan Singh"],
+["VJq6aMPw9W4",160,"5:36",0,"Chala Patna Ke Ghat","Pawan Singh"],
+["PL2eykuoUbI",156,"6:30",0,"Akshara Singh Ka Chhath Geet","Akshara Singh"],
+["Pk3cYw5Wonw",154,"4:17",0,"Chhathi Maiya Deda Ego Lalna","Kalpana Patowary"],
+["qX4uJFC2aUs",149,"5:00",0,"Naahin Jootal Phal Phool","T-Series Bhakti Sagar"],
+["FPDKM5NidYM",141,"4:40",0,"Kawna Kalamwa Se Likhla Karamwa","Pawan Singh, Priyanka Singh"],
+["pp0bO8uro64",141,"5:22",0,"Kahawa Paibo Sone Ke Katorwa","Anu Dubey"],
+["bL6rp6eI_2k",140,"6:29",0,"Chhath Ke Baratiya","Sharda Sinha"],
+["Hu5bAyznURA",139,"3:32",0,"Dhaniya Aawatani Chhath Kare","Arvind Akela Kallu"],
+["2fFXDHk2TLs",132,"7:26",0,"Jode Jode Nariyal","Devi"],
+["nvT9w2fcfGE",132,"5:20",0,"Kath Ke Re Naiya","Kalpana Patowary"],
+["6V2HibWFYzI",122,"6:46",0,"Chadhti Katikwa Chhath Maiya Aili","Anu Dubey"],
+["QVW0isaTJZ8",50,"3:24",1,"Chaar Hi Chakka Ke Motarwa","T-Series Hamaar Bhojpuri"],
+["7EtBzGj4AyY",9,"4:00",1,"Dhaniya Mor Shahri Baadi","Khesari Lal Yadav, Pallavi Singh"],
+["wc2rJFMgRjY",9,"3:46",1,"Jawan Ghat Sajaib Hum","Pramod Premi Yadav"],
+["IoQZuhMCyYk",7,"4:54",1,"Hum Chhath Karab","Anu Dubey"],
+["QMfyJaGAriU",6,"5:10",1,"Chhath Ke Baratiya","Akshara Singh, Sugam Singh"],
+["yAt9nV2uvYw",5,"5:05",1,"Lagungi Beautiful Piya Ghat Pe","Shilpi Raj"],
+["CMTJom5zZ3s",1,"3:01",1,"Hoi Je Balakwa","Pramod Premi Yadav"],
+["PwrQIEp7VzU",1,"8:58",1,"Bitiya Hamar","Kalpana Patowary"],
+["PttFbA0FWdI",1,"5:15",1,"Ugi He Suruj Mal Naiyo Na Dole","Pawan Singh"],
+["JfHJC0c00DI",1,"4:33",1,"Kaniya Ka Liha Chhath","Shilpi Raj"],
+["wAzliF-VsBM",0,"3:41",1,"Ghan Badari","Shilpi Raj"],
+["INp-NNoKWZ4",0,"3:54",1,"Chhath Ke Baratiya","Anu Dubey"],
+["lD8PUogYCko",0,"6:16",1,"The Sorrow Has Been Revealed","Kalpana Patowary"]
+];
+console.assert(S.length===100&&new Set(S.map(s=>s[0])).size===100,"song list must be 100 unique videos");
+
+const $=id=>document.getElementById(id);
+const views=l=>l>=100?(l/100).toFixed(1)+" Cr":l>=1?l+" L":"under 1 L";
+const isFile=location.protocol==="file:";
+let cur=0,player=null,ready=false,playing=false,shuffle=false,filter="all";
+
+/* ---------- list ---------- */
+const list=$("list");
+function shown(){const q=$("q").value.trim().toLowerCase();
+  return S.map((s,i)=>i).filter(i=>{const s=S[i];
+    return (filter==="all"||(filter==="new"&&s[3])||(filter==="cr"&&s[1]>=100))&&(!q||(s[4]+" "+s[5]).toLowerCase().includes(q));});}
+function render(){const ids=shown();
+  list.innerHTML=ids.map(i=>{const s=S[i];return `<li data-i="${i}"${i===cur?' class="on"':''}><a href="https://www.youtube.com/watch?v=${s[0]}" target="_blank" rel="noopener">
+  <div class="rk"><span>${i+1}</span><div class="eq"><i></i><i></i><i></i></div></div>
+  <img loading="lazy" alt="" src="https://i.ytimg.com/vi/${s[0]}/mqdefault.jpg">
+  <div><div class="ti">${s[4]}${s[3]?'<span class="new">NEW</span>':''}</div><div class="ar">${s[5]}</div></div>
+  <div class="meta"><b>${views(s[1])}</b>${s[2]}</div></a></li>`}).join("")||'<li class="empty">No song matches. Try a shorter search.</li>';}
+list.addEventListener("click",e=>{const li=e.target.closest("li[data-i]");if(!li||isFile)return;e.preventDefault();load(+li.dataset.i,true);});
+$("q").addEventListener("input",render);
+document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{filter=b.dataset.f;document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c===b));render();});
+
+/* ---------- player ---------- */
+function load(i,autoplay){cur=i;const s=S[i];$("nt").textContent=(i+1)+". "+s[4];$("na").textContent=s[5]+" · "+views(s[1])+" views";
+  $("err").hidden=true;scene=makeScene(s[0]);
+  document.querySelectorAll("#list li").forEach(li=>li.classList.toggle("on",+li.dataset.i===i));
+  if(ready)autoplay?player.loadVideoById(s[0]):player.cueVideoById(s[0]);}
+function step(d){const ids=shown().length?shown():S.map((s,i)=>i);let p=ids.indexOf(cur);
+  if(shuffle&&ids.length>1){let n;do{n=ids[Math.floor(Math.random()*ids.length)]}while(n===cur);return load(n,true);}
+  load(ids[(p+d+ids.length)%ids.length],true);}
+$("next").onclick=()=>step(1);$("prev").onclick=()=>step(-1);
+$("shuf").onclick=()=>{shuffle=!shuffle;$("shuf").setAttribute("aria-pressed",shuffle);};
+$("play").onclick=()=>{if(isFile)return window.open("https://www.youtube.com/watch?v="+S[cur][0],"_blank","noopener");if(ready)playing?player.pauseVideo():player.playVideo();};
+function setPlaying(p){playing=p;document.body.classList.toggle("playing",p);$("play").textContent=p?"Pause":"Play";}
+window.onYouTubeIframeAPIReady=()=>{player=new YT.Player("player",{videoId:S[cur][0],playerVars:{playsinline:1,rel:0},events:{
+  onReady:()=>{ready=true;},
+  onStateChange:e=>{setPlaying(e.data===1);if(e.data===0)step(1);},
+  onError:()=>{const s=S[cur];$("err").hidden=false;$("err").innerHTML=`"${s[4]}" cannot play inside this page. <a href="https://www.youtube.com/watch?v=${s[0]}" target="_blank" rel="noopener">Open it on YouTube</a>. Moving to the next song.`;setTimeout(()=>step(1),2500);}
+}});};
+if(isFile){$("filenote").hidden=false;$("play").textContent="Open on YouTube";$("player").outerHTML=`<img alt="" style="width:100%;height:100%;object-fit:cover" src="https://i.ytimg.com/vi/${S[0][0]}/hqdefault.jpg">`;}
+else{const t=document.createElement("script");t.src="https://www.youtube.com/iframe_api";document.head.appendChild(t);}
+
+/* ---------- per-song scene ----------
+   Each video id seeds its own sky (dawn or dusk arghya), sun, ray style, diyas, sugarcane and beat.
+   ponytail: beat is seeded, not read from the audio (YouTube does not expose it). Real beat needs own audio files. */
+function rng(str){let h=2166136261;for(const c of str)h=Math.imul(h^c.charCodeAt(0),16777619);
+  return()=>{h=Math.imul(h^(h>>>15),2246822507);h=Math.imul(h^(h>>>13),3266489909);return((h^=h>>>16)>>>0)/4294967296;};}
+function makeScene(id){const r=rng(id),dawn=r()<.5;return{dawn,
+  hue:dawn?22+r()*26:(345+r()*30)%360, sunX:.22+r()*.56, sunR:.11+r()*.07, rays:8+Math.floor(r()*14),
+  style:Math.floor(r()*3), bpm:68+r()*56, spin:(r()<.5?-1:1)*(.05+r()*.12),
+  diyas:Array.from({length:5+Math.floor(r()*10)},()=>({x:r(),y:.1+r()*.85,v:.004+r()*.012,p:r()*6.3})),
+  cane:Array.from({length:3+Math.floor(r()*4)},()=>({side:r()<.5?0:1,o:r()*.16,h:.55+r()*.35,p:r()*6.3}))};}
+let scene=makeScene(S[0][0]),T=0,last=0;
+const cv=$("cv"),g=cv.getContext("2d");
+function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(playing?1:.12);
+  const dpr=Math.min(2,devicePixelRatio||1),W=cv.clientWidth,H=cv.clientHeight;
+  if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);}
+  g.setTransform(dpr,0,0,dpr,0,0);
+  const s=scene,hz=H*.6,beat=Math.pow(.5+.5*Math.sin(T*s.bpm/60*Math.PI*2),3),sun=`hsl(${s.hue} 95% 58%)`;
+  // sky
+  let gr=g.createLinearGradient(0,0,0,hz);gr.addColorStop(0,`hsl(${s.dawn?248:285} 50% 13%)`);gr.addColorStop(.7,`hsl(${(s.hue+330)%360} 60% 32%)`);gr.addColorStop(1,`hsl(${s.hue} 90% 58%)`);
+  g.fillStyle=gr;g.fillRect(0,0,W,hz);
+  // sun: rises at dawn, sinks at dusk, slowly
+  const R=Math.min(W,H*1.6)*s.sunR*(1+beat*.06),cx=W*s.sunX,cy=hz-R*(.15+.55*(.5+.5*Math.sin(T*.07))*(s.dawn?1:.8));
+  g.save();g.translate(cx,cy);g.rotate(T*s.spin);g.fillStyle=`hsl(${s.hue+12} 100% 70% / ${.10+beat*.12})`;g.strokeStyle=g.fillStyle;
+  if(s.style===0)for(let i=0;i<s.rays;i++){g.rotate(Math.PI*2/s.rays);g.beginPath();g.moveTo(0,0);g.lineTo(R*5,-R*.28);g.lineTo(R*5,R*.28);g.fill();}
+  else if(s.style===1){g.lineWidth=2;for(let i=0;i<6;i++){g.beginPath();g.arc(0,0,R*(1.2+((i+T*.4)%6)*.55),0,7);g.stroke();}}
+  else for(let i=0;i<s.rays;i++){g.rotate(Math.PI*2/s.rays);g.beginPath();g.ellipse(R*1.55,0,R*(.55+beat*.15),R*.2,0,0,7);g.fill();}
+  g.restore();
+  gr=g.createRadialGradient(cx,cy,0,cx,cy,R);gr.addColorStop(0,"#fff6d8");gr.addColorStop(.6,sun);gr.addColorStop(1,`hsl(${s.hue-8} 95% 48%)`);
+  g.fillStyle=gr;g.beginPath();g.arc(cx,cy,R,0,7);g.fill();
+  // river
+  gr=g.createLinearGradient(0,hz,0,H);gr.addColorStop(0,`hsl(${(s.hue+330)%360} 55% 24%)`);gr.addColorStop(1,"#120a22");
+  g.fillStyle=gr;g.fillRect(0,hz,W,H-hz);
+  g.fillStyle=`hsl(${s.hue+10} 100% 66% / .55)`;
+  for(let k=0;k<12;k++){const y=hz+4+k*(H-hz)/12,w=R*(1.1+k*.22)*(.6+.4*Math.sin(T*1.6+k*1.3));g.fillRect(cx-w/2+Math.sin(T+k)*6,y,w,2);}
+  // diyas drifting on the water
+  for(const d of s.diyas){const x=((d.x+T*d.v)%1.1-.05)*W,y=hz+8+d.y*(H-hz-14)+Math.sin(T*1.2+d.p)*1.5,sc=.6+d.y*.7,f=.75+.25*Math.sin(T*9+d.p)+beat*.3;
+    g.fillStyle=`hsl(40 100% 60% / ${.16*f})`;g.beginPath();g.arc(x,y-4*sc,11*sc*f,0,7);g.fill();
+    g.fillStyle="#5b2b12";g.beginPath();g.ellipse(x,y,6*sc,2.4*sc,0,0,7);g.fill();
+    g.fillStyle="#ffd772";g.beginPath();g.ellipse(x,y-4*sc,1.6*sc,3.4*sc*f,0,0,7);g.fill();}
+  // sugarcane on the banks
+  g.strokeStyle="#0d0718";g.lineCap="round";
+  for(const c of s.cane){const bx=c.side?W-c.o*W:c.o*W,dir=c.side?-1:1,sw=Math.sin(T*.8+c.p)*8*(1+beat*.4),tx=bx+dir*(24+sw),ty=H-H*c.h;
+    g.lineWidth=4;g.beginPath();g.moveTo(bx,H);g.quadraticCurveTo(bx,H*.5,tx,ty);g.stroke();
+    g.lineWidth=2;for(let l=0;l<4;l++){g.beginPath();g.moveTo(tx,ty);g.quadraticCurveTo(tx+dir*(18+l*8),ty-20+l*12,tx+dir*(34+l*12)+sw,ty+10+l*16);g.stroke();
+      g.beginPath();g.moveTo(tx,ty);g.quadraticCurveTo(tx-dir*(12+l*6),ty-18+l*10,tx-dir*(22+l*9)+sw,ty+8+l*14);g.stroke();}}
+  // loudspeaker on a bamboo pole: the real sound system of every ghat. It sits on the side away from the sun.
+  const px=W*(s.sunX>.5?.13:.87),pd=s.sunX>.5?1:-1,py=H*.3,pk=playing?1+beat*.1:1;
+  g.strokeStyle="#0d0718";g.lineWidth=5;g.beginPath();g.moveTo(px,H);g.lineTo(px,py-10);g.stroke();
+  g.save();g.translate(px,py);g.scale(pd*pk,pk);g.fillStyle="#0d0718";
+  g.beginPath();g.moveTo(-7,-5);g.lineTo(10,-5);g.lineTo(34,-18);g.lineTo(34,18);g.lineTo(10,5);g.lineTo(-7,5);g.fill();
+  if(playing){g.strokeStyle="hsl(40 100% 72%)";g.lineWidth=2;for(let i=0;i<3;i++){const rr=44+((T*30+i*16)%48);g.globalAlpha=.6*(1-(rr-44)/48);g.beginPath();g.arc(20,0,rr,-.6,.6);g.stroke();}}
+  g.restore();
+  // string of festival bulbs across the top
+  for(let i=0;i<=24;i++){const u=i/24;g.fillStyle=`hsl(${[45,0,130,200][i%4]} 95% 62% / ${.4+.6*(.5+.5*Math.sin(T*3+i*1.7))})`;g.beginPath();g.arc(u*W,8+Math.sin(u*Math.PI)*16,2.5,0,7);g.fill();}
+  if(!still)requestAnimationFrame(draw);}
+const still=matchMedia("(prefers-reduced-motion:reduce)").matches;
+requestAnimationFrame(draw);if(still)addEventListener("resize",()=>requestAnimationFrame(draw));
+
+$("pl").href="https://www.youtube.com/watch_videos?video_ids="+S.slice(0,50).map(s=>s[0]).join(",");
+render();load(0,false);
+</script>
+</body>
+</html>
