@@ -367,6 +367,30 @@ function person(x,wy,q,dip,soop,dir,col,ring){
     g.fillStyle="#ffd772";oval(dir*6.5*q,-12*q,.5*q,1.2*q*(.8+.2*Math.sin(T*9+x)));}
   else{g.lineWidth=1.2*q;g.beginPath();g.moveTo(-1.6*q,-8*q);g.lineTo(0,-13.5*q);g.lineTo(1.6*q,-8*q);g.stroke();}
   g.restore();}
+const stepY=(x,W,H)=>{for(let i=0;i<4;i++)if(x<W*(.22+i*.09))return H*(.63+i*.05);return H*.78;};
+// a person walking or standing on the ghat steps. carry: "daura" (offering basket on the head), "pot", "sparkler", or "" (hands folded)
+function walker(x,y,q,ph,carry,dir,col){
+  const sw=Math.sin(ph)*2.2*q;g.strokeStyle=col;g.fillStyle=col;g.lineCap="round";g.lineWidth=1.3*q;
+  g.beginPath();g.moveTo(x,y-6*q);g.lineTo(x+sw,y);g.moveTo(x,y-6*q);g.lineTo(x-sw,y);g.stroke();
+  g.beginPath();g.moveTo(x-1.9*q,y-5.5*q);g.lineTo(x-1.5*q,y-12*q);g.lineTo(x+1.5*q,y-12*q);g.lineTo(x+1.9*q,y-5.5*q);g.fill();
+  dot(x,y-13.8*q,1.6*q);
+  if(carry==="daura"||carry==="pot"){g.lineWidth=1.1*q;g.beginPath();g.moveTo(x-1.4*q,y-11.5*q);g.lineTo(x-2.2*q,y-16*q);g.moveTo(x+1.4*q,y-11.5*q);g.lineTo(x+2.2*q,y-16*q);g.stroke();
+    if(carry==="daura"){g.fillStyle="#7a5527";g.beginPath();g.ellipse(x,y-16.2*q,4.2*q,1.8*q,0,0,Math.PI);g.fill();g.fillRect(x-4.2*q,y-16.7*q,8.4*q,.6*q);
+      g.fillStyle="#f29a1f";dot(x-1.6*q,y-17.4*q,1.1*q);g.fillStyle="#e9d24a";dot(x+1.4*q,y-17.4*q,1*q);g.fillStyle="#7fae3c";dot(x,y-17.9*q,1.1*q);}
+    else{g.fillStyle="#d9992e";dot(x,y-17.2*q,2.1*q);g.fillRect(x-1.1*q,y-20*q,2.2*q,1*q);}}
+  else if(carry==="sparkler"){const hx=x+dir*4.5*q,hy=y-13*q+Math.sin(ph*.5)*q,n=Math.floor(T*14);g.lineWidth=1*q;g.beginPath();g.moveTo(x+dir*1.2*q,y-11*q);g.lineTo(hx,hy);g.stroke();
+    for(let k=0;k<9;k++){const an=hash(k+n)*6.283,rr=(1+hash(k*3+n)*3.5)*q;g.fillStyle=`hsl(${45+hash(k)*15} 100% 75%)`;dot(hx+Math.cos(an)*rr,hy+Math.sin(an)*rr,1.2);}
+    g.fillStyle="#fff";dot(hx,hy,1.7);}
+  else{g.lineWidth=1.1*q;g.beginPath();g.moveTo(x-1.4*q,y-11*q);g.lineTo(x+dir*1.6*q,y-9*q);g.lineTo(x+1.4*q,y-11*q);g.stroke();}}
+// a person sitting on a step. act: "fan" (fanning the fire), "roti" (rolling roti), "stick" (shooing birds off the drying wheat), "clap" (singing along)
+function sitter(x,y,q,act,dir,col){
+  g.fillStyle=col;g.strokeStyle=col;g.lineCap="round";oval(x,y-2.6*q,3.6*q,2.8*q);oval(x,y-7*q,2.1*q,3.2*q);dot(x,y-11.2*q,1.6*q);g.lineWidth=1.1*q;
+  const s1=Math.sin(T*(act==="fan"?7:act==="roti"?4:act==="stick"?2.2:5));let hx=x+dir*4.5*q,hy=y-6.5*q+s1*1.6*q;
+  if(act==="roti"){hx=x+dir*(4.4+s1*1.2)*q;hy=y-2.2*q;}else if(act==="stick"){hx=x+dir*4*q;hy=y-10*q+s1*2*q;}else if(act==="clap"){hx=x+dir*(2.2+Math.abs(s1)*.9)*q;hy=y-8.4*q;}
+  g.beginPath();g.moveTo(x+dir*1.2*q,y-8.6*q);g.lineTo(hx,hy);g.stroke();
+  if(act==="fan"){g.fillStyle="#c9a15a";oval(hx+dir*2*q,hy,2.2*q,2.8*q);}
+  if(act==="roti"){g.fillStyle="#2a1a10";oval(x+dir*4.6*q,y-.9*q,3.2*q,.8*q);g.fillStyle="#e8d2a0";oval(x+dir*4.6*q,y-1.5*q,2.3*q,.55*q);g.strokeStyle="#a8703a";g.lineWidth=.8*q;g.beginPath();g.moveTo(hx-1.7*q,hy);g.lineTo(hx+1.7*q,hy);g.stroke();}
+  if(act==="stick"){g.lineWidth=.6*q;g.beginPath();g.moveTo(hx,hy);g.lineTo(hx+dir*7*q,hy-3*q+s1*3*q);g.stroke();}}
 function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(playing?1:.15);
   const dpr=Math.min(2,devicePixelRatio||1),W=innerWidth,H=innerHeight;
   if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);}
@@ -431,7 +455,11 @@ function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(pla
     g.fillStyle="#5b2b12";oval(x,y,6*sc,2.4*sc);g.fillStyle="#ffd772";oval(x,y-4*sc,1.6*sc,3.4*sc*f);}
   // devotees in the river: taking the holy dip on Nahay Khay, offering arghya to the sun on the two arghya days
   if(d!==1)[.34,.45,.6,.71,.8].forEach((fx,i)=>{const x=fx*W,wy=hz+H*(.07+(i%2)*.06),q=u*(.6+(i%2)*.25);
-    person(x,wy,q,d===0?Math.pow(Math.max(0,Math.sin(T*.7+i*1.9)),2)*.85:0,d!==0,cx<x?-1:1,sil,d===0?"rgba(255,255,255,.55)":"rgba(255,220,160,.4)");});
+    person(x,wy,q,d===0?Math.pow(Math.max(0,Math.sin(T*.7+i*1.9)),2)*.85:0,d!==0,cx<x?-1:1,sil,d===0?"rgba(255,255,255,.55)":"rgba(255,220,160,.4)");
+    if(d===3&&i%2){const dir=cx<x?-1:1,sx=x+dir*6.5*q,hx=x+dir*13*q;g.fillStyle=sil;g.strokeStyle=sil;                 // a helper pours the arghya over the soop
+      g.beginPath();g.moveTo(hx-2.8*q,wy);g.lineTo(hx-2*q,wy-9*q);g.lineTo(hx+2*q,wy-9*q);g.lineTo(hx+2.8*q,wy);g.fill();dot(hx,wy-11.2*q,1.8*q);
+      g.lineWidth=1.2*q;g.lineCap="round";g.beginPath();g.moveTo(hx-dir*q,wy-8*q);g.lineTo(sx+dir*1.6*q,wy-16.5*q);g.stroke();
+      g.fillStyle="#d9992e";dot(sx+dir*1.2*q,wy-17*q,1.4*q);g.fillStyle="rgba(255,255,255,.85)";for(let k=0;k<4;k++)g.fillRect(sx-.3*q,wy-16*q+((T*2+k/4)%1)*5*q,.6*q,1.3*q);}});
   // ghat steps on the left bank
   g.fillStyle=sil;for(let i=0;i<4;i++)g.fillRect(0,H*(.63+i*.05),W*(.22+i*.09),H);
   const gx=W*.11,gy=H*.63;
@@ -462,6 +490,21 @@ function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(pla
       g.lineWidth=4;g.beginPath();g.moveTo(bx,H);g.quadraticCurveTo(bx,H*.6,tx,ty);g.stroke();
       g.lineWidth=2;for(let l=0;l<4;l++){g.beginPath();g.moveTo(tx,ty);g.quadraticCurveTo(tx-(18+l*8),ty-20+l*12,tx-(34+l*12)+sw,ty+10+l*16);g.stroke();
         g.beginPath();g.moveTo(tx,ty);g.quadraticCurveTo(tx+(12+l*6),ty-18+l*10,tx+(22+l*9)+sw,ty+8+l*14);g.stroke();}}}
+  // people on the ghat steps, doing what is done on that day
+  {const q=u*.85,pc=d===1?"#3b2218":sil,sy=f=>stepY(f*W,W,H);
+  if(d===0){ // wheat for the prasad dries in the sun while someone keeps the birds off; water is carried up from the river
+    sitter(W*.25,sy(.25),q,"stick",1,pc);
+    const cy0=sy(.35);g.fillStyle="#efe3c6";g.beginPath();g.moveTo(W*.325,cy0);g.lineTo(W*.395,cy0);g.lineTo(W*.385,cy0-1.6*u);g.lineTo(W*.335,cy0-1.6*u);g.fill();
+    g.fillStyle="#c9963f";for(let k=0;k<26;k++)dot(W*(.337+hash(k)*.046),cy0-(.3+hash(k+40)*1.1)*u,1.1);
+    g.fillStyle=pc;for(let k=0;k<2;k++){const bx=W*(.345+k*.03),by=cy0-1.8*u-Math.abs(Math.sin(T*5+k*2))*.8*u;oval(bx,by,1.1*u,.7*u);dot(bx+.9*u,by-.5*u+Math.max(0,Math.sin(T*5+k*2))*.9*u,.45*u);}
+    for(let k=0;k<2;k++){const f=(T*.012+k*.5)%1,x=(k?1-f:f)*.5*W;walker(x,stepY(x,W,H),q,T*5+k,"pot",k?-1:1,pc);}}
+  else if(d===1){ // the family gathers by the stove: one fans the fire, one rolls roti, the rest sing
+    sitter(W*.035,sy(.035),q,"fan",1,pc);sitter(W*.25,sy(.25),q,"clap",-1,pc);sitter(W*.287,sy(.287),q*.62,"clap",-1,pc);sitter(W*.36,sy(.36),q,"roti",-1,pc);
+    const lx=W*.33,ly=sy(.33),fl=.8+.2*Math.sin(T*9);g.fillStyle=`hsl(40 100% 60% / ${.25*fl})`;dot(lx,ly-1.6*u,3*u*fl);g.fillStyle="#5b2b12";oval(lx,ly-.5*u,1.3*u,.6*u);g.fillStyle="#ffd772";oval(lx,ly-1.7*u,.4*u,1*u*fl);}
+  else if(d===2){ // the procession comes down to the ghat with daura on their heads; a child follows with a sparkler
+    for(let k=4;k>=0;k--){const x=(((T*.014-k*.085)%1+1)%1)*.54*W-.03*W;walker(x,stepY(x,W,H),k===4?q*.6:q,T*5+k*1.7,k===4?"sparkler":"daura",1,pc);}}
+  else{ // families stand on the steps with folded hands as the sun comes up
+    [.25,.29,.345,.435].forEach((f,k)=>walker(W*f,sy(f),q*(k===1?.9:1),0,"",1,pc));walker(W*.39,sy(.39),q*.6,T*5,"sparkler",1,pc);}}
   if(d===1)for(let i=0;i<12;i++){g.fillStyle=`hsl(70 100% 70% / ${.4+.4*Math.sin(T*3+i)})`;dot(W*(.2+hash(i)*.7)+Math.sin(T*.5+i)*u*4,H*(.36+hash(i+20)*.2)+Math.cos(T*.4+i*2)*u*3,1.6);}   // fireflies
   // loudspeaker on a bamboo pole: the real sound system of every ghat
   const px=W*.9,py=H*.34,pk=1+beat*.1;
