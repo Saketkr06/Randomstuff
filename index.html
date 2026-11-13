@@ -28,7 +28,12 @@ a{color:inherit}
 /* the YouTube player only supplies the sound; it sits behind the scene */
 .video{position:fixed;left:0;bottom:0;width:320px;height:180px;z-index:0;pointer-events:none;opacity:0}
 .video iframe,.video>div{width:100%;height:100%;border:0;display:block}
-.ui{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+.ui{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none;overflow-y:auto;transition:opacity .6s}
+/* screen-saver mode: while a song plays and nobody touches anything, only the scene stays */
+.panel{transition:opacity .6s}
+body.idle{cursor:none}
+body.idle .ui,body.idle .panel{opacity:0}
+body.idle .ui>*,body.idle .panel{pointer-events:none}
 .ui>*{pointer-events:auto}
 .top{padding:14px 16px 44px;background:linear-gradient(rgba(10,5,20,.82),rgba(10,5,20,.5) 60%,transparent);display:grid;gap:10px}
 h1{font:400 clamp(1.5rem,4.5vw,2.2rem)/1.1 var(--display);margin:0;color:var(--marigold)}
@@ -293,12 +298,21 @@ function step(d){const ids=shown().length?shown():order;let p=ids.indexOf(cur);
 $("next").onclick=()=>step(1);$("prev").onclick=()=>step(-1);
 $("shuf").onclick=()=>{shuffle=!shuffle;$("shuf").setAttribute("aria-pressed",shuffle);};
 $("play").onclick=()=>{if(isFile)return window.open("https://www.youtube.com/watch?v="+S[cur][0],"_blank","noopener");if(ready)playing?player.pauseVideo():player.playVideo();};
-function setPlaying(p){playing=p;document.body.classList.toggle("playing",p);$("play").textContent=p?"Pause":"Play";}
+function setPlaying(p){wake();playing=p;document.body.classList.toggle("playing",p);$("play").textContent=p?"Pause":"Play";}
 window.onYouTubeIframeAPIReady=()=>{player=new YT.Player("player",{videoId:S[cur][0],playerVars:{playsinline:1,rel:0},events:{
   onReady:()=>{ready=true;},
   onStateChange:e=>{setPlaying(e.data===1);if(e.data===0)step(1);},
   onError:()=>{const s=S[cur];$("err").hidden=false;$("err").innerHTML=`"${s[4]}" cannot play on this page. <a href="https://www.youtube.com/watch?v=${s[0]}" target="_blank" rel="noopener">Open it on YouTube</a>. Moving to the next song.`;setTimeout(()=>step(1),2500);}
 }});};
+// Hide every control after 5 quiet seconds of playback. Any key, tap or mouse move brings them back;
+// that first press only wakes the screen, it does not press a hidden button.
+let idleT,wokeAt=0,swallow=false;
+function wake(){if(document.body.classList.contains("idle")){document.body.classList.remove("idle");wokeAt=Date.now();}
+  clearTimeout(idleT);idleT=setTimeout(()=>{if(playing)document.body.classList.add("idle");},5000);}
+["mousemove","mousedown","touchstart","wheel"].forEach(e=>addEventListener(e,wake,{passive:true,capture:true}));
+addEventListener("keydown",e=>{if(document.body.classList.contains("idle")){swallow=true;e.preventDefault();e.stopPropagation();}wake();},true);
+addEventListener("keyup",e=>{if(swallow){swallow=false;e.preventDefault();e.stopPropagation();}},true);
+addEventListener("click",e=>{if(Date.now()-wokeAt<400){e.preventDefault();e.stopPropagation();}},true);
 const mmss=t=>Math.floor(t/60)+":"+String(Math.floor(t%60)).padStart(2,"0");
 let seeking=false,prog=.35;$("seek").oninput=()=>{seeking=true;};
 $("seek").onchange=()=>{if(ready)player.seekTo($("seek").value/1000*(player.getDuration()||0),true);seeking=false;};
