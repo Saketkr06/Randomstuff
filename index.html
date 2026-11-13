@@ -33,12 +33,16 @@ header p{margin:6px 0 0;color:var(--smoke);max-width:60ch}
 @media(min-width:900px){.cols{grid-template-columns:minmax(0,5fr) minmax(0,6fr);align-items:start}.stage{position:sticky;top:16px}}
 
 .stage{display:grid;gap:12px}
-.scene{position:relative;border-radius:14px 14px 0 0;overflow:hidden;background:var(--ghat)}
-.scene canvas{display:block;width:100%;aspect-ratio:16/8}
-.now{position:absolute;left:0;right:0;bottom:0;padding:28px 14px 10px;background:linear-gradient(transparent,rgba(12,6,24,.85))}
+.scene{position:relative;border-radius:14px;overflow:hidden;background:var(--ghat)}
+.scene canvas{display:block;width:100%;aspect-ratio:16/11;position:relative;z-index:1}
+.now{z-index:2;position:absolute;left:0;right:0;bottom:0;padding:28px 14px 10px;background:linear-gradient(transparent,rgba(12,6,24,.85))}
 .now b{display:block;font:400 1.35rem/1.2 var(--display);text-wrap:balance}
 .now span{color:var(--smoke);font-size:.9rem}
-.video{aspect-ratio:16/9;background:#000;border-radius:0 0 14px 14px;overflow:hidden;margin-top:-12px}
+/* the YouTube player only supplies the sound; it sits behind the scene */
+.video{position:absolute;inset:0;z-index:0;pointer-events:none}
+.bar{display:flex;gap:12px;align-items:center}
+.bar input{flex:1;min-width:0;accent-color:var(--sindoor)}
+.bar span{color:var(--smoke);font-size:.9rem;font-variant-numeric:tabular-nums;white-space:nowrap}
 .video iframe,.video>div{width:100%;height:100%;border:0;display:block}
 .ctrl{display:flex;gap:8px;flex-wrap:wrap}
 button,.chip{font:600 .95rem var(--body);color:var(--thekua);background:var(--ghat);border:1px solid var(--step);border-radius:999px;padding:8px 16px;cursor:pointer}
@@ -84,11 +88,12 @@ footer{color:var(--smoke);font-size:.88rem;max-width:70ch}
     <section class="stage" aria-label="Player">
       <div>
         <div class="scene">
+          <div class="video"><div id="player"></div></div>
           <canvas id="cv" aria-hidden="true"></canvas>
           <div class="now"><b id="nt"></b><span id="na"></span></div>
         </div>
-        <div class="video"><div id="player"></div></div>
       </div>
+      <div class="bar"><input type="range" id="seek" min="0" max="1000" value="0" aria-label="Position in song"><span id="tm">0:00</span></div>
       <div class="ctrl">
         <button id="prev">Previous</button>
         <button id="play" class="main">Tune in</button>
@@ -252,8 +257,13 @@ function setPlaying(p){playing=p;document.body.classList.toggle("playing",p);$("
 window.onYouTubeIframeAPIReady=()=>{player=new YT.Player("player",{videoId:S[cur][0],playerVars:{playsinline:1,rel:0},events:{
   onReady:()=>{ready=true;},
   onStateChange:e=>{setPlaying(e.data===1);if(e.data===0)step(1);},
-  onError:()=>{const s=S[cur];$("err").hidden=false;$("err").innerHTML=`"${s[4]}" cannot play inside this page. <a href="https://www.youtube.com/watch?v=${s[0]}" target="_blank" rel="noopener">Open it on YouTube</a>. Moving to the next song.`;setTimeout(()=>step(1),2500);}
+  onError:()=>{const s=S[cur];$("err").hidden=false;$("err").innerHTML=`"${s[4]}" cannot play on this page. <a href="https://www.youtube.com/watch?v=${s[0]}" target="_blank" rel="noopener">Open it on YouTube</a>. Moving to the next song.`;setTimeout(()=>step(1),2500);}
 }});};
+const mmss=t=>Math.floor(t/60)+":"+String(Math.floor(t%60)).padStart(2,"0");
+let seeking=false;$("seek").oninput=()=>{seeking=true;};
+$("seek").onchange=()=>{if(ready)player.seekTo($("seek").value/1000*(player.getDuration()||0),true);seeking=false;};
+setInterval(()=>{const d=ready&&player.getDuration?player.getDuration()||0:0,c=d?player.getCurrentTime()||0:0;
+  if(!seeking)$("seek").value=d?c/d*1000:0;$("tm").textContent=mmss(c)+" / "+(d?mmss(d):S[cur][2]);},500);
 if(isFile){$("filenote").hidden=false;$("play").textContent="Open on YouTube";$("player").outerHTML=`<img alt="" style="width:100%;height:100%;object-fit:cover" src="https://i.ytimg.com/vi/${S[0][0]}/hqdefault.jpg">`;}
 else{const t=document.createElement("script");t.src="https://www.youtube.com/iframe_api";document.head.appendChild(t);}
 
