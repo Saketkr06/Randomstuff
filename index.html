@@ -7,64 +7,75 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;800&family=Yatra+One&display=swap" rel="stylesheet">
 <style>
-/* Layout idea: a ghat at arghya time. Left = the stage (live scene + player), right = the 100 songs. One dark world, by choice. */
+/* Layout idea: the whole screen is the ghat. Day tabs on top, the radio at the bottom, songs in a side panel that stays hidden until asked. One dark world, by choice. */
 :root{
-  --river:#170d2b;      /* night water, page background */
-  --ghat:#241438;       /* raised surfaces */
+  --river:#170d2b;      /* page background behind the scene */
+  --ghat:#241438;       /* panel and buttons */
   --step:#3a2352;       /* borders, hover */
   --sindoor:#e8492d;    /* accent: playing, primary action */
-  --marigold:#ffb629;   /* highlight: ranks, new tag */
+  --marigold:#ffb629;   /* highlight: title, ranks, chosen day */
   --thekua:#f6e7c8;     /* main text */
-  --smoke:#b9a6c9;      /* secondary text */
+  --smoke:#cbbbd8;      /* secondary text */
   --display:"Yatra One","Mukta",system-ui,sans-serif;
   --body:"Mukta",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-html,body{margin:0}
-body{background:var(--river);color:var(--thekua);font:400 16px/1.5 var(--body)}
+html,body{height:100%;margin:0}
+body{background:var(--river);color:var(--thekua);font:400 16px/1.5 var(--body);overflow:hidden}
 a{color:inherit}
-.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 48px;display:grid;gap:24px}
-header h1{font:400 clamp(2rem,6vw,3.2rem)/1.1 var(--display);margin:0;color:var(--marigold);text-wrap:balance}
-header p{margin:6px 0 0;color:var(--smoke);max-width:60ch}
-.note{background:var(--ghat);border-left:4px solid var(--marigold);padding:10px 14px;border-radius:6px}
-.note[hidden]{display:none}
-.cols{display:grid;gap:24px;grid-template-columns:minmax(0,1fr)}
-@media(min-width:900px){.cols{grid-template-columns:minmax(0,5fr) minmax(0,6fr);align-items:start}.stage{position:sticky;top:16px}}
-
-.stage{display:grid;gap:12px}
-.scene{position:relative;border-radius:14px;overflow:hidden;background:var(--ghat)}
-.scene canvas{display:block;width:100%;aspect-ratio:16/11;position:relative;z-index:1}
-.now{z-index:2;position:absolute;left:0;right:0;bottom:0;padding:28px 14px 10px;background:linear-gradient(transparent,rgba(12,6,24,.85))}
-.now b{display:block;font:400 1.35rem/1.2 var(--display);text-wrap:balance}
-.now span{color:var(--smoke);font-size:.9rem}
+#cv{position:fixed;inset:0;width:100%;height:100%;z-index:1;display:block}
 /* the YouTube player only supplies the sound; it sits behind the scene */
-.video{position:absolute;inset:0;z-index:0;pointer-events:none}
-.bar{display:flex;gap:12px;align-items:center}
+.video{position:fixed;left:0;bottom:0;width:320px;height:180px;z-index:0;pointer-events:none}
+.video iframe,.video>div{width:100%;height:100%;border:0;display:block}
+.ui{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+.ui>*{pointer-events:auto}
+.top{padding:14px 16px 44px;background:linear-gradient(rgba(10,5,20,.82),rgba(10,5,20,.5) 60%,transparent);display:grid;gap:10px}
+h1{font:400 clamp(1.5rem,4.5vw,2.2rem)/1.1 var(--display);margin:0;color:var(--marigold)}
+.days{display:flex;gap:8px;flex-wrap:wrap}
+.day{font:600 .95rem/1.2 var(--body);color:var(--thekua);background:rgba(36,20,56,.8);border:1px solid var(--step);border-radius:12px;padding:6px 14px;cursor:pointer;text-align:left}
+.day small{display:block;font-weight:400;color:var(--smoke);font-size:.8rem}
+.day[aria-pressed="true"]{border-color:var(--marigold);background:var(--marigold);color:#2a1500}
+.day[aria-pressed="true"] small{color:#4a2c00}
+.cap{margin:0;max-width:60ch;text-shadow:0 1px 6px #000}
+.cap b{font:400 1.25rem var(--display);color:var(--marigold);margin-right:8px}
+.note{background:var(--ghat);border-left:4px solid var(--marigold);padding:8px 12px;border-radius:6px;margin:0;max-width:70ch}
+.note[hidden]{display:none}
+.bottom{padding:56px 16px 16px;background:linear-gradient(transparent,rgba(10,5,20,.9) 50%);display:grid;gap:10px}
+.now b{display:block;font:400 clamp(1.3rem,4vw,1.9rem)/1.2 var(--display);text-wrap:balance}
+.now span{color:var(--smoke)}
+.bar{display:flex;gap:12px;align-items:center;max-width:760px}
 .bar input{flex:1;min-width:0;accent-color:var(--sindoor)}
 .bar span{color:var(--smoke);font-size:.9rem;font-variant-numeric:tabular-nums;white-space:nowrap}
-.video iframe,.video>div{width:100%;height:100%;border:0;display:block}
 .ctrl{display:flex;gap:8px;flex-wrap:wrap}
-button,.chip{font:600 .95rem var(--body);color:var(--thekua);background:var(--ghat);border:1px solid var(--step);border-radius:999px;padding:8px 16px;cursor:pointer}
-button:hover,.chip:hover{background:var(--step)}
+button.b,.chip{font:600 .95rem var(--body);color:var(--thekua);background:var(--ghat);border:1px solid var(--step);border-radius:999px;padding:8px 16px;cursor:pointer;text-decoration:none}
+button.b:hover,.chip:hover{background:var(--step)}
 button.main{background:var(--sindoor);border-color:var(--sindoor);color:#fff}
-button[aria-pressed="true"]{border-color:var(--marigold);color:var(--marigold)}
+button.b[aria-pressed="true"],.chip[aria-pressed="true"]{border-color:var(--marigold);color:var(--marigold)}
 :focus-visible{outline:2px solid var(--marigold);outline-offset:2px}
 
-.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
-.tools input{flex:1 1 180px;min-width:0;font:400 1rem var(--body);color:var(--thekua);background:var(--ghat);border:1px solid var(--step);border-radius:999px;padding:8px 16px}
-ol{list-style:none;margin:0;padding:0;display:grid;gap:6px}
-li a{display:grid;grid-template-columns:2.2rem 88px minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 10px 6px 4px;border-radius:10px;text-decoration:none;border:1px solid transparent}
+/* song panel: hidden until the Songs button is pressed */
+.panel{position:fixed;z-index:3;top:0;right:0;bottom:0;width:min(440px,100%);background:rgba(28,15,46,.97);border-left:1px solid var(--step);display:flex;flex-direction:column;animation:slide .22s ease-out}
+.panel[hidden]{display:none}
+@keyframes slide{from{transform:translateX(100%)}to{transform:none}}
+.phead{padding:14px 16px 10px;display:grid;gap:10px;border-bottom:1px solid var(--step)}
+.phead div{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.phead h2{font:400 1.3rem var(--display);margin:0;flex:1;color:var(--marigold)}
+.phead p{margin:0;color:var(--smoke);font-size:.9rem}
+.phead input{flex:1 1 160px;min-width:0;font:400 1rem var(--body);color:var(--thekua);background:var(--ghat);border:1px solid var(--step);border-radius:999px;padding:8px 16px}
+ol{list-style:none;margin:0;padding:8px;display:grid;gap:4px;overflow-y:auto;flex:1;align-content:start}
+li a{display:grid;grid-template-columns:2rem 64px minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 8px 6px 2px;border-radius:10px;text-decoration:none;border:1px solid transparent}
 li a:hover{background:var(--ghat)}
 li.on a{background:var(--ghat);border-color:var(--sindoor)}
-.rk{font:400 1.1rem var(--display);color:var(--marigold);text-align:center;font-variant-numeric:tabular-nums}
-li img{width:88px;aspect-ratio:16/9;object-fit:cover;border-radius:6px;background:var(--step);display:block}
+.rk{font:400 1.05rem var(--display);color:var(--marigold);text-align:center;font-variant-numeric:tabular-nums}
+li img{width:64px;aspect-ratio:16/9;object-fit:cover;border-radius:6px;background:var(--step);display:block}
 .ti{font-weight:600;line-height:1.25;overflow-wrap:anywhere}
-.ar{color:var(--smoke);font-size:.88rem;line-height:1.3}
-.meta{text-align:right;font-size:.88rem;color:var(--smoke);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ar{color:var(--smoke);font-size:.86rem;line-height:1.3}
+.meta{text-align:right;font-size:.84rem;color:var(--smoke);font-variant-numeric:tabular-nums;white-space:nowrap}
 .meta b{display:block;color:var(--thekua);font-weight:600}
-.new{display:inline-block;background:var(--marigold);color:#2a1500;font-weight:800;font-size:.7rem;border-radius:4px;padding:0 5px;margin-left:6px;vertical-align:1px}
-/* small bars on the playing row */
+.tag{display:inline-block;font-weight:800;font-size:.68rem;border-radius:4px;padding:0 5px;margin-left:6px;vertical-align:1px}
+.tag.new{background:var(--marigold);color:#2a1500}
+.tag.fit{border:1px solid var(--marigold);color:var(--marigold)}
 .eq{display:none;gap:2px;height:14px;align-items:flex-end;justify-content:center}
 li.on .eq{display:flex}li.on .rk span{display:none}
 .eq i{width:3px;background:var(--sindoor);height:100%;transform-origin:bottom;animation:eq .9s ease-in-out infinite alternate}
@@ -72,49 +83,52 @@ li.on .eq{display:flex}li.on .rk span{display:none}
 body:not(.playing) .eq i{animation-play-state:paused}
 @keyframes eq{from{transform:scaleY(.25)}to{transform:scaleY(1)}}
 .empty{color:var(--smoke);padding:16px}
-footer{color:var(--smoke);font-size:.88rem;max-width:70ch}
-@media(max-width:480px){li a{grid-template-columns:1.8rem 64px minmax(0,1fr)}li img{width:64px}.meta{grid-column:3;text-align:left}.meta b{display:inline;margin-right:8px}}
-@media(prefers-reduced-motion:reduce){.eq i{animation:none}}
+.pfoot{padding:10px 16px;border-top:1px solid var(--step);color:var(--smoke);font-size:.82rem;display:grid;gap:8px}
+@media(prefers-reduced-motion:reduce){.eq i,.panel{animation:none}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
+<div class="video"><div id="player"></div></div>
+<canvas id="cv" aria-hidden="true"></canvas>
+
+<div class="ui">
+  <header class="top">
     <h1>छठ घाट रेडियो</h1>
-    <p>The loudspeaker on the bamboo pole at the ghat, now on your screen. 100 Chhath Puja songs, ranked by YouTube views. Every song gets its own ghat scene: its own sun, sky, diyas and beat.</p>
+    <div class="days" id="days" role="group" aria-label="Choose the day of Chhath"></div>
+    <p class="cap" id="cap"></p>
+    <p class="note" id="filenote" hidden>YouTube does not allow its player on a page opened straight from a file. Open the hosted link and the songs will play right here. Until then, each song opens on YouTube.</p>
   </header>
-  <p class="note" id="filenote" hidden>YouTube does not allow its player on a page opened straight from a file. Put this file on any web host (GitHub Pages works) and the songs will play right here. Until then, each song opens on YouTube.</p>
-  <div class="cols">
-    <section class="stage" aria-label="Player">
-      <div>
-        <div class="scene">
-          <div class="video"><div id="player"></div></div>
-          <canvas id="cv" aria-hidden="true"></canvas>
-          <div class="now"><b id="nt"></b><span id="na"></span></div>
-        </div>
-      </div>
-      <div class="bar"><input type="range" id="seek" min="0" max="1000" value="0" aria-label="Position in song"><span id="tm">0:00</span></div>
-      <div class="ctrl">
-        <button id="prev">Previous</button>
-        <button id="play" class="main">Tune in</button>
-        <button id="next">Next</button>
-        <button id="shuf" aria-pressed="false">Shuffle</button>
-        <a class="chip" id="pl" target="_blank" rel="noopener" style="text-decoration:none">Top 50 as a YouTube playlist</a>
-      </div>
-      <p class="note" id="err" hidden></p>
-    </section>
-    <section aria-label="Songs">
-      <div class="tools">
-        <button class="chip" data-f="all" aria-pressed="true">All 100</button>
-        <button class="chip" data-f="cr" aria-pressed="false">1 crore+ views</button>
-        <button class="chip" data-f="new" aria-pressed="false">New this season</button>
-        <input id="q" type="search" placeholder="Search song or singer" aria-label="Search song or singer">
-      </div>
-      <ol id="list"></ol>
-    </section>
-  </div>
-  <footer>View counts are from YouTube on 13 November 2026, shown in lakh (L) and crore (Cr). Songs marked New were released in the last 12 months. All videos play from their official YouTube uploads.</footer>
+  <section class="bottom" aria-label="Radio">
+    <div class="now"><b id="nt"></b><span id="na"></span></div>
+    <p class="note" id="err" hidden></p>
+    <div class="bar"><input type="range" id="seek" min="0" max="1000" value="0" aria-label="Position in song"><span id="tm">0:00</span></div>
+    <div class="ctrl">
+      <button class="b" id="prev">Previous</button>
+      <button class="b main" id="play">Tune in</button>
+      <button class="b" id="next">Next</button>
+      <button class="b" id="shuf" aria-pressed="false">Shuffle</button>
+      <button class="b" id="open" aria-expanded="false" aria-controls="panel">Show songs</button>
+    </div>
+  </section>
 </div>
+
+<aside class="panel" id="panel" hidden aria-label="Songs">
+  <div class="phead">
+    <div><h2>100 songs</h2><button class="b" id="close">Hide songs</button></div>
+    <p id="fitline"></p>
+    <div>
+      <button class="chip" data-f="all" aria-pressed="true">All</button>
+      <button class="chip" data-f="fit" aria-pressed="false">For this day</button>
+      <button class="chip" data-f="new" aria-pressed="false">New</button>
+      <input id="q" type="search" placeholder="Search song or singer" aria-label="Search song or singer">
+    </div>
+  </div>
+  <ol id="list"></ol>
+  <div class="pfoot">
+    <a class="chip" id="pl" target="_blank" rel="noopener" style="justify-self:start">Open the top 50 as a YouTube playlist</a>
+    <span>Ranked by YouTube views on 13 November 2026, in lakh (L) and crore (Cr). New means released in the last 12 months.</span>
+  </div>
+</aside>
 
 <script>
 // [videoId, views in lakh, length, new?, song, singer or channel]
@@ -222,32 +236,57 @@ const S=[
 ];
 console.assert(S.length===100&&new Set(S.map(s=>s[0])).size===100,"song list must be 100 unique videos");
 
+// The four days of Chhath 2026. rx picks the songs that fit each day by words in the title.
+// ponytail: title keywords, not hand tagging. Tag each song by hand if the picks feel off.
+const DAYS=[
+ {k:"Nahay Khay",h:"नहाय खाय",date:"Fri 13 Nov",md:"11-13",line:"A holy dip in the river, then a simple meal of kaddu-bhaat.",rx:/Pahile|Karab|Chali|Chala|Ganga|Patna|Naihar|Manayenge|Kare Aai/i},
+ {k:"Kharna",h:"खरना",date:"Sat 14 Nov",md:"11-14",line:"A full day of fasting, ended after sunset with gur ki kheer and roti cooked on a clay stove.",rx:/Baratiya|Vrat|Bhukh|Kathin|Banjh|Lalna|Dukhwa|Sahaiya/i},
+ {k:"Sandhya Arghya",h:"संध्या अर्घ्य",date:"Sun 15 Nov",md:"11-15",line:"Everyone at the ghat with soop and daura, offering arghya to the setting sun.",rx:/Bahangiya|Ghat|Aragh|Kelwa|Kerwa|Supwa|Nariyal|Falwa|Koshiya|Deenanath/i},
+ {k:"Usha Arghya",h:"उषा अर्घ्य",date:"Mon 16 Nov",md:"11-16",line:"Standing in the water before dawn, offering arghya to the rising sun. Then the fast ends.",rx:/Uga|Ugi|Uth|Suruj|Suraj|Aadit|Bihaan|Darshan/i}
+];
 const $=id=>document.getElementById(id);
 const views=l=>l>=100?(l/100).toFixed(1)+" Cr":l>=1?l+" L":"under 1 L";
 const isFile=location.protocol==="file:";
-let cur=0,player=null,ready=false,playing=false,shuffle=false,filter="all";
+const now0=new Date(),md=String(now0.getMonth()+1).padStart(2,"0")+"-"+String(now0.getDate()).padStart(2,"0");
+const todayIdx=DAYS.findIndex(d=>d.md===md);
+let day=0,order=S.map((s,i)=>i),cur=0,player=null,ready=false,playing=false,shuffle=false,filter="all";
+const fits=i=>DAYS[day].rx.test(S[i][4]);
 
-/* ---------- list ---------- */
+/* ---------- days ---------- */
+$("days").innerHTML=DAYS.map((d,i)=>`<button class="day" data-d="${i}" aria-pressed="false">${d.k}<small>${i===todayIdx?"Today, ":""}${d.date}</small></button>`).join("");
+$("days").onclick=e=>{const b=e.target.closest(".day");if(b)setDay(+b.dataset.d);};
+function setDay(d){day=d;const D=DAYS[d];
+  document.querySelectorAll(".day").forEach((b,i)=>b.setAttribute("aria-pressed",i===d));
+  $("cap").innerHTML=`<b>${D.h}</b>${D.line}`;
+  const all=S.map((s,i)=>i);order=all.filter(fits).concat(all.filter(i=>!fits(i)));
+  $("fitline").textContent=`${all.filter(fits).length} songs that fit ${D.k} play first.`;
+  render();if(!playing)load(order[0],false);}
+
+/* ---------- song panel ---------- */
 const list=$("list");
 function shown(){const q=$("q").value.trim().toLowerCase();
-  return S.map((s,i)=>i).filter(i=>{const s=S[i];
-    return (filter==="all"||(filter==="new"&&s[3])||(filter==="cr"&&s[1]>=100))&&(!q||(s[4]+" "+s[5]).toLowerCase().includes(q));});}
-function render(){const ids=shown();
-  list.innerHTML=ids.map(i=>{const s=S[i];return `<li data-i="${i}"${i===cur?' class="on"':''}><a href="https://www.youtube.com/watch?v=${s[0]}" target="_blank" rel="noopener">
+  return order.filter(i=>{const s=S[i];
+    return (filter==="all"||(filter==="new"&&s[3])||(filter==="fit"&&fits(i)))&&(!q||(s[4]+" "+s[5]).toLowerCase().includes(q));});}
+function render(){
+  list.innerHTML=shown().map(i=>{const s=S[i];return `<li data-i="${i}"${i===cur?' class="on"':''}><a href="https://www.youtube.com/watch?v=${s[0]}" target="_blank" rel="noopener">
   <div class="rk"><span>${i+1}</span><div class="eq"><i></i><i></i><i></i></div></div>
   <img loading="lazy" alt="" src="https://i.ytimg.com/vi/${s[0]}/mqdefault.jpg">
-  <div><div class="ti">${s[4]}${s[3]?'<span class="new">NEW</span>':''}</div><div class="ar">${s[5]}</div></div>
+  <div><div class="ti">${s[4]}${s[3]?'<span class="tag new">NEW</span>':''}${fits(i)?`<span class="tag fit">${DAYS[day].k}</span>`:''}</div><div class="ar">${s[5]}</div></div>
   <div class="meta"><b>${views(s[1])}</b>${s[2]}</div></a></li>`}).join("")||'<li class="empty">No song matches. Try a shorter search.</li>';}
 list.addEventListener("click",e=>{const li=e.target.closest("li[data-i]");if(!li||isFile)return;e.preventDefault();load(+li.dataset.i,true);});
 $("q").addEventListener("input",render);
-document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{filter=b.dataset.f;document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c===b));render();});
+document.querySelectorAll(".chip[data-f]").forEach(b=>b.onclick=()=>{filter=b.dataset.f;document.querySelectorAll(".chip[data-f]").forEach(c=>c.setAttribute("aria-pressed",c===b));render();});
+function panel(show){$("panel").hidden=!show;$("open").setAttribute("aria-expanded",show);$("open").textContent=show?"Hide songs":"Show songs";
+  if(show){const on=list.querySelector("li.on");if(on)on.scrollIntoView({block:"center"});}}
+$("open").onclick=()=>panel($("panel").hidden);$("close").onclick=()=>panel(false);
+addEventListener("keydown",e=>{if(e.key==="Escape")panel(false);});
 
 /* ---------- player ---------- */
-function load(i,autoplay){cur=i;const s=S[i];$("nt").textContent=(i+1)+". "+s[4];$("na").textContent=s[5]+" · "+views(s[1])+" views";
+function load(i,autoplay){cur=i;const s=S[i];$("nt").textContent=s[4];$("na").textContent=s[5]+" · "+views(s[1])+" views";
   $("err").hidden=true;scene=makeScene(s[0]);
   document.querySelectorAll("#list li").forEach(li=>li.classList.toggle("on",+li.dataset.i===i));
   if(ready)autoplay?player.loadVideoById(s[0]):player.cueVideoById(s[0]);}
-function step(d){const ids=shown().length?shown():S.map((s,i)=>i);let p=ids.indexOf(cur);
+function step(d){const ids=shown().length?shown():order;let p=ids.indexOf(cur);
   if(shuffle&&ids.length>1){let n;do{n=ids[Math.floor(Math.random()*ids.length)]}while(n===cur);return load(n,true);}
   load(ids[(p+d+ids.length)%ids.length],true);}
 $("next").onclick=()=>step(1);$("prev").onclick=()=>step(-1);
@@ -260,73 +299,116 @@ window.onYouTubeIframeAPIReady=()=>{player=new YT.Player("player",{videoId:S[cur
   onError:()=>{const s=S[cur];$("err").hidden=false;$("err").innerHTML=`"${s[4]}" cannot play on this page. <a href="https://www.youtube.com/watch?v=${s[0]}" target="_blank" rel="noopener">Open it on YouTube</a>. Moving to the next song.`;setTimeout(()=>step(1),2500);}
 }});};
 const mmss=t=>Math.floor(t/60)+":"+String(Math.floor(t%60)).padStart(2,"0");
-let seeking=false;$("seek").oninput=()=>{seeking=true;};
+let seeking=false,prog=.35;$("seek").oninput=()=>{seeking=true;};
 $("seek").onchange=()=>{if(ready)player.seekTo($("seek").value/1000*(player.getDuration()||0),true);seeking=false;};
 setInterval(()=>{const d=ready&&player.getDuration?player.getDuration()||0:0,c=d?player.getCurrentTime()||0:0;
-  if(!seeking)$("seek").value=d?c/d*1000:0;$("tm").textContent=mmss(c)+" / "+(d?mmss(d):S[cur][2]);},500);
-if(isFile){$("filenote").hidden=false;$("play").textContent="Open on YouTube";$("player").outerHTML=`<img alt="" style="width:100%;height:100%;object-fit:cover" src="https://i.ytimg.com/vi/${S[0][0]}/hqdefault.jpg">`;}
+  if(d&&c>0)prog=c/d;if(!seeking)$("seek").value=d?c/d*1000:0;$("tm").textContent=mmss(c)+" / "+(d?mmss(d):S[cur][2]);},500);
+if(isFile){$("filenote").hidden=false;$("play").textContent="Open on YouTube";}
 else{const t=document.createElement("script");t.src="https://www.youtube.com/iframe_api";document.head.appendChild(t);}
 
-/* ---------- per-song scene ----------
-   Each video id seeds its own sky (dawn or dusk arghya), sun, ray style, diyas, sugarcane and beat.
+/* ---------- the scene ----------
+   The day sets the place and time: morning river (Nahay Khay), night and clay stove (Kharna),
+   setting sun (Sandhya Arghya), rising sun (Usha Arghya). The sun sets or rises as the song moves forward.
+   Each song still seeds its own colours, rays, diyas and beat.
    ponytail: beat is seeded, not read from the audio (YouTube does not expose it). Real beat needs own audio files. */
 function rng(str){let h=2166136261;for(const c of str)h=Math.imul(h^c.charCodeAt(0),16777619);
   return()=>{h=Math.imul(h^(h>>>15),2246822507);h=Math.imul(h^(h>>>13),3266489909);return((h^=h>>>16)>>>0)/4294967296;};}
-function makeScene(id){const r=rng(id),dawn=r()<.5;return{dawn,
-  hue:dawn?22+r()*26:(345+r()*30)%360, sunX:.22+r()*.56, sunR:.11+r()*.07, rays:8+Math.floor(r()*14),
+function makeScene(id){const r=rng(id);return{
+  hd:(345+r()*30)%360, hu:22+r()*26, sunX:.34+r()*.36, rays:8+Math.floor(r()*14),
   style:Math.floor(r()*3), bpm:68+r()*56, spin:(r()<.5?-1:1)*(.05+r()*.12),
-  diyas:Array.from({length:5+Math.floor(r()*10)},()=>({x:r(),y:.1+r()*.85,v:.004+r()*.012,p:r()*6.3})),
-  cane:Array.from({length:3+Math.floor(r()*4)},()=>({side:r()<.5?0:1,o:r()*.16,h:.55+r()*.35,p:r()*6.3}))};}
+  diyas:Array.from({length:8+Math.floor(r()*10)},()=>({x:r(),y:r(),v:.004+r()*.012,p:r()*6.3})),
+  cane:Array.from({length:3+Math.floor(r()*3)},()=>({o:r()*.1,h:.5+r()*.3,p:r()*6.3})),
+  birds:Array.from({length:5},()=>({x:r(),y:r(),v:.01+r()*.02,p:r()*6.3}))};}
+const STARS=(()=>{const r=rng("stars");return Array.from({length:70},()=>[r(),r()*.52,.4+r()*.6,r()*6.3]);})();
 let scene=makeScene(S[0][0]),T=0,last=0;
-const cv=$("cv"),g=cv.getContext("2d");
-function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(playing?1:.12);
-  const dpr=Math.min(2,devicePixelRatio||1),W=cv.clientWidth,H=cv.clientHeight;
+const cv=$("cv"),g=cv.getContext("2d"),still=matchMedia("(prefers-reduced-motion:reduce)").matches;
+const dot=(x,y,r)=>{g.beginPath();g.arc(x,y,r,0,7);g.fill();};
+const oval=(x,y,a,b)=>{g.beginPath();g.ellipse(x,y,a,b,0,0,7);g.fill();};
+
+function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(playing?1:.15);
+  const dpr=Math.min(2,devicePixelRatio||1),W=innerWidth,H=innerHeight;
   if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);}
-  g.setTransform(dpr,0,0,dpr,0,0);
-  const s=scene,hz=H*.6,beat=Math.pow(.5+.5*Math.sin(T*s.bpm/60*Math.PI*2),3),sun=`hsl(${s.hue} 95% 58%)`;
-  // sky
-  let gr=g.createLinearGradient(0,0,0,hz);gr.addColorStop(0,`hsl(${s.dawn?248:285} 50% 13%)`);gr.addColorStop(.7,`hsl(${(s.hue+330)%360} 60% 32%)`);gr.addColorStop(1,`hsl(${s.hue} 90% 58%)`);
+  g.setTransform(dpr,0,0,dpr,0,0);g.globalAlpha=1;
+  const s=scene,d=day,hz=H*.56,u=Math.min(W,H)/100,p=prog;
+  const beat=playing?Math.pow(.5+.5*Math.sin(T*s.bpm/60*Math.PI*2),3):0;
+  const a=d===2?1-p:d===3?p:1;                       // sun height: sinks on Sandhya, climbs on Usha
+  const hue=d===2?s.hd:d===3?s.hu:46, sil=d===0?"#0e2f38":"#0d0718";
+  let top,mid,hor,w1,w2;
+  if(d===0){top="hsl(206 66% 44%)";mid="hsl(196 72% 68%)";hor="hsl(42 95% 84%)";w1="hsl(194 55% 46%)";w2="hsl(212 60% 20%)";}
+  else if(d===1){top="#06061a";mid="hsl(250 46% 15%)";hor="hsl(276 40% 25%)";w1="hsl(262 42% 16%)";w2="#07061a";}
+  else if(d===2){top=`hsl(276 48% ${25-p*13}%)`;mid=`hsl(${(hue+335)%360} 62% ${42-p*14}%)`;hor=`hsl(${hue} 92% ${62-p*12}%)`;w1=`hsl(${(hue+330)%360} 55% ${26-p*8}%)`;w2="#120a22";}
+  else{top=`hsl(${250-a*32} 50% ${11+a*26}%)`;mid=`hsl(${(hue+320)%360} 55% ${22+a*26}%)`;hor=`hsl(${hue+8} 92% ${46+a*22}%)`;w1=`hsl(${(hue+325)%360} 50% ${18+a*12}%)`;w2="#120a22";}
+  let gr=g.createLinearGradient(0,0,0,hz);gr.addColorStop(0,top);gr.addColorStop(.62,mid);gr.addColorStop(1,hor);
   g.fillStyle=gr;g.fillRect(0,0,W,hz);
-  // sun: rises at dawn, sinks at dusk, slowly
-  const R=Math.min(W,H*1.6)*s.sunR*(1+beat*.06),cx=W*s.sunX,cy=hz-R*(.15+.55*(.5+.5*Math.sin(T*.07))*(s.dawn?1:.8));
-  g.save();g.translate(cx,cy);g.rotate(T*s.spin);g.fillStyle=`hsl(${s.hue+12} 100% 70% / ${.10+beat*.12})`;g.strokeStyle=g.fillStyle;
-  if(s.style===0)for(let i=0;i<s.rays;i++){g.rotate(Math.PI*2/s.rays);g.beginPath();g.moveTo(0,0);g.lineTo(R*5,-R*.28);g.lineTo(R*5,R*.28);g.fill();}
-  else if(s.style===1){g.lineWidth=2;for(let i=0;i<6;i++){g.beginPath();g.arc(0,0,R*(1.2+((i+T*.4)%6)*.55),0,7);g.stroke();}}
-  else for(let i=0;i<s.rays;i++){g.rotate(Math.PI*2/s.rays);g.beginPath();g.ellipse(R*1.55,0,R*(.55+beat*.15),R*.2,0,0,7);g.fill();}
-  g.restore();
-  gr=g.createRadialGradient(cx,cy,0,cx,cy,R);gr.addColorStop(0,"#fff6d8");gr.addColorStop(.6,sun);gr.addColorStop(1,`hsl(${s.hue-8} 95% 48%)`);
-  g.fillStyle=gr;g.beginPath();g.arc(cx,cy,R,0,7);g.fill();
-  // river
-  gr=g.createLinearGradient(0,hz,0,H);gr.addColorStop(0,`hsl(${(s.hue+330)%360} 55% 24%)`);gr.addColorStop(1,"#120a22");
-  g.fillStyle=gr;g.fillRect(0,hz,W,H-hz);
-  g.fillStyle=`hsl(${s.hue+10} 100% 66% / .55)`;
-  for(let k=0;k<12;k++){const y=hz+4+k*(H-hz)/12,w=R*(1.1+k*.22)*(.6+.4*Math.sin(T*1.6+k*1.3));g.fillRect(cx-w/2+Math.sin(T+k)*6,y,w,2);}
-  // diyas drifting on the water
-  for(const d of s.diyas){const x=((d.x+T*d.v)%1.1-.05)*W,y=hz+8+d.y*(H-hz-14)+Math.sin(T*1.2+d.p)*1.5,sc=.6+d.y*.7,f=.75+.25*Math.sin(T*9+d.p)+beat*.3;
-    g.fillStyle=`hsl(40 100% 60% / ${.16*f})`;g.beginPath();g.arc(x,y-4*sc,11*sc*f,0,7);g.fill();
-    g.fillStyle="#5b2b12";g.beginPath();g.ellipse(x,y,6*sc,2.4*sc,0,0,7);g.fill();
-    g.fillStyle="#ffd772";g.beginPath();g.ellipse(x,y-4*sc,1.6*sc,3.4*sc*f,0,0,7);g.fill();}
-  // sugarcane on the banks
-  g.strokeStyle="#0d0718";g.lineCap="round";
-  for(const c of s.cane){const bx=c.side?W-c.o*W:c.o*W,dir=c.side?-1:1,sw=Math.sin(T*.8+c.p)*8*(1+beat*.4),tx=bx+dir*(24+sw),ty=H-H*c.h;
-    g.lineWidth=4;g.beginPath();g.moveTo(bx,H);g.quadraticCurveTo(bx,H*.5,tx,ty);g.stroke();
-    g.lineWidth=2;for(let l=0;l<4;l++){g.beginPath();g.moveTo(tx,ty);g.quadraticCurveTo(tx+dir*(18+l*8),ty-20+l*12,tx+dir*(34+l*12)+sw,ty+10+l*16);g.stroke();
-      g.beginPath();g.moveTo(tx,ty);g.quadraticCurveTo(tx-dir*(12+l*6),ty-18+l*10,tx-dir*(22+l*9)+sw,ty+8+l*14);g.stroke();}}
-  // loudspeaker on a bamboo pole: the real sound system of every ghat. It sits on the side away from the sun.
-  const px=W*(s.sunX>.5?.13:.87),pd=s.sunX>.5?1:-1,py=H*.3,pk=playing?1+beat*.1:1;
-  g.strokeStyle="#0d0718";g.lineWidth=5;g.beginPath();g.moveTo(px,H);g.lineTo(px,py-10);g.stroke();
-  g.save();g.translate(px,py);g.scale(pd*pk,pk);g.fillStyle="#0d0718";
+  // stars: all night on Kharna, fading at dawn, appearing at dusk
+  const sa=d===1?1:d===3?1-a*1.7:d===2?p*1.6-.7:0;
+  if(sa>0){g.fillStyle="#fff";for(const st of STARS){g.globalAlpha=Math.min(1,sa)*st[2]*(.6+.4*Math.sin(T*2+st[3]));dot(st[0]*W,st[1]*H,1.2);}g.globalAlpha=1;}
+  // sun or moon
+  const cx=W*s.sunX;let cy,R;
+  if(d===1){R=u*5.5;cy=H*.2;
+    g.save();g.beginPath();g.rect(0,0,W,H);g.arc(cx+R*.5,cy-R*.15,R*.9,0,7,true);g.clip("evenodd");
+    g.fillStyle="hsl(50 60% 88% / .18)";dot(cx,cy,R*1.9+beat*4);g.fillStyle="#f5ecc8";dot(cx,cy,R);g.restore();}
+  else{R=u*(d===0?8:13)*(1+beat*.05);cy=d===0?hz-H*.34:hz+R*.7-a*R*2.5;
+    g.save();g.beginPath();g.rect(0,0,W,hz);g.clip();
+    g.translate(cx,cy);g.rotate(T*s.spin);g.fillStyle=`hsl(${hue+12} 100% 72% / ${.10+beat*.12})`;g.strokeStyle=g.fillStyle;
+    if(s.style===0)for(let i=0;i<s.rays;i++){g.rotate(Math.PI*2/s.rays);g.beginPath();g.moveTo(0,0);g.lineTo(R*6,-R*.3);g.lineTo(R*6,R*.3);g.fill();}
+    else if(s.style===1){g.lineWidth=2;for(let i=0;i<6;i++){g.beginPath();g.arc(0,0,R*(1.2+((i+T*.4)%6)*.55),0,7);g.stroke();}}
+    else for(let i=0;i<s.rays;i++){g.rotate(Math.PI*2/s.rays);g.beginPath();g.ellipse(R*1.55,0,R*(.55+beat*.15),R*.2,0,0,7);g.fill();}
+    g.setTransform(dpr,0,0,dpr,0,0);
+    gr=g.createRadialGradient(cx,cy,0,cx,cy,R);gr.addColorStop(0,"#fff8de");gr.addColorStop(.6,`hsl(${hue} 96% ${d===0?72:58}%)`);gr.addColorStop(1,`hsl(${hue-8} 95% ${d===0?62:48}%)`);
+    g.fillStyle=gr;dot(cx,cy,R);g.restore();}
+  // birds in the morning light
+  if(d===0||(d===3&&a>.3)){g.strokeStyle=sil;g.lineWidth=1.6;for(const b of s.birds){const x=((b.x+T*b.v)%1.2-.1)*W,y=H*(.14+b.y*.22),f=Math.sin(T*6+b.p)*4;
+    g.beginPath();g.moveTo(x-9,y+f);g.quadraticCurveTo(x-4,y-4,x,y);g.quadraticCurveTo(x+4,y-4,x+9,y+f);g.stroke();}}
+  // river and the light on it
+  gr=g.createLinearGradient(0,hz,0,H);gr.addColorStop(0,w1);gr.addColorStop(1,w2);g.fillStyle=gr;g.fillRect(0,hz,W,H-hz);
+  g.fillStyle=d===1?"hsl(50 60% 88% / .35)":`hsl(${hue+10} 100% ${d===0?88:66}% / .55)`;
+  if(d===1||cy-R<hz)for(let k=0;k<14;k++){const y=hz+5+k*(H-hz)/22,w=R*(1.1+k*.24)*(.6+.4*Math.sin(T*1.6+k*1.3));g.fillRect(cx-w/2+Math.sin(T+k)*6,y,w,2);}
+  // diyas on the water: a few on Kharna night, many on the two arghya days
+  const nd=d===0?0:d===1?4:s.diyas.length;
+  for(let i=0;i<nd;i++){const o=s.diyas[i],x=((o.x+T*o.v)%1.1-.05)*W,y=hz+10+o.y*(H-hz)*.42+Math.sin(T*1.2+o.p)*1.5,sc=.7+o.y*.8,f=.75+.25*Math.sin(T*9+o.p)+beat*.3;
+    g.fillStyle=`hsl(40 100% 60% / ${.16*f})`;dot(x,y-4*sc,12*sc*f);
+    g.fillStyle="#5b2b12";oval(x,y,6*sc,2.4*sc);g.fillStyle="#ffd772";oval(x,y-4*sc,1.6*sc,3.4*sc*f);}
+  // ghat steps on the left bank
+  g.fillStyle=sil;for(let i=0;i<4;i++)g.fillRect(0,H*(.63+i*.05),W*(.22+i*.09),H);
+  const gx=W*.11,gy=H*.63;
+  if(d===0){ // brass kalash with mango leaves and a coconut
+    g.fillStyle="#2f7d3a";for(let i=-2;i<=2;i++){g.save();g.translate(gx,gy-8.5*u);g.rotate(i*.5);oval(0,-3*u,.9*u,3*u);g.restore();}
+    g.fillStyle="#6a4424";dot(gx,gy-9.5*u,2*u);g.fillStyle="#d9992e";oval(gx,gy-4*u,4.4*u,4*u);g.fillRect(gx-2*u,gy-8.6*u,4*u,1.6*u);
+    g.fillStyle="#f3c257";oval(gx-1.4*u,gy-5*u,1*u,1.8*u);}
+  else if(d===1){ // clay stove with kheer on the fire
+    const f=.7+.3*Math.sin(T*11)+beat*.3;
+    gr=g.createRadialGradient(gx,gy-4*u,0,gx,gy-4*u,26*u);gr.addColorStop(0,`hsl(28 100% 58% / ${.42*f})`);gr.addColorStop(1,"transparent");g.fillStyle=gr;g.fillRect(gx-26*u,gy-30*u,52*u,40*u);
+    g.fillStyle="#4a2c1a";g.beginPath();g.moveTo(gx-7.5*u,gy);g.lineTo(gx-5.5*u,gy-6.5*u);g.lineTo(gx+5.5*u,gy-6.5*u);g.lineTo(gx+7.5*u,gy);g.fill();
+    g.fillStyle="#ff9a2e";g.beginPath();g.arc(gx,gy,2.8*u,Math.PI,0);g.fill();
+    for(let i=-1;i<=1;i++){const h=(2.4+1.4*Math.sin(T*9+i*2)+beat*1.6)*u;g.fillStyle=i?"#ff7a1a":"#ffd25e";oval(gx+i*3.3*u,gy-6.5*u-h*.6,1.1*u,h);}
+    g.fillStyle="#1c100a";oval(gx,gy-10.5*u,5.4*u,3.6*u);g.fillRect(gx-4.2*u,gy-14.6*u,8.4*u,1.3*u);
+    g.strokeStyle="rgba(255,255,255,.28)";g.lineWidth=1.5;for(let i=0;i<3;i++){const sx=gx+(i-1)*2.4*u,o=Math.sin(T*2+i)*2*u;g.beginPath();g.moveTo(sx,gy-15.5*u);g.quadraticCurveTo(sx+o,gy-20*u,sx-o*.5,gy-25*u);g.stroke();}}
+  else{ // soop and daura with fruit and a diya
+    for(const [bx,sz] of [[gx-3*u,1],[gx+9*u,.75]]){const q=u*sz,f=.8+.2*Math.sin(T*9+bx)+beat*.3;
+      g.fillStyle="#f29a1f";dot(bx-3.4*q,gy-3.6*q,1.9*q);g.fillStyle="#e9d24a";dot(bx+3.2*q,gy-3.6*q,1.7*q);g.fillStyle="#7fae3c";dot(bx,gy-4.4*q,2*q);
+      g.fillStyle=`hsl(40 100% 60% / ${.22*f})`;dot(bx,gy-7.6*q,5*q*f);g.fillStyle="#ffd772";oval(bx,gy-7.6*q,.8*q,1.9*q*f);
+      g.fillStyle="#7a5527";g.beginPath();g.ellipse(bx,gy-2.6*q,7*q,2.8*q,0,0,Math.PI);g.fill();g.fillRect(bx-7*q,gy-3.2*q,14*q,.8*q);}
+    // sugarcane tied in a bunch at the right bank
+    g.strokeStyle=sil;g.lineCap="round";
+    for(const c of s.cane){const bx=W-c.o*W,sw=Math.sin(T*.8+c.p)*8*(1+beat*.4),tx=bx-24-sw,ty=H-H*c.h;
+      g.lineWidth=4;g.beginPath();g.moveTo(bx,H);g.quadraticCurveTo(bx,H*.6,tx,ty);g.stroke();
+      g.lineWidth=2;for(let l=0;l<4;l++){g.beginPath();g.moveTo(tx,ty);g.quadraticCurveTo(tx-(18+l*8),ty-20+l*12,tx-(34+l*12)+sw,ty+10+l*16);g.stroke();
+        g.beginPath();g.moveTo(tx,ty);g.quadraticCurveTo(tx+(12+l*6),ty-18+l*10,tx+(22+l*9)+sw,ty+8+l*14);g.stroke();}}}
+  // loudspeaker on a bamboo pole: the real sound system of every ghat
+  const px=W*.9,py=H*.34,pk=1+beat*.1;
+  g.strokeStyle=sil;g.lineWidth=5;g.lineCap="butt";g.beginPath();g.moveTo(px,H);g.lineTo(px,py-10);g.stroke();
+  g.save();g.translate(px,py);g.scale(-pk,pk);g.fillStyle=sil;
   g.beginPath();g.moveTo(-7,-5);g.lineTo(10,-5);g.lineTo(34,-18);g.lineTo(34,18);g.lineTo(10,5);g.lineTo(-7,5);g.fill();
-  if(playing){g.strokeStyle="hsl(40 100% 72%)";g.lineWidth=2;for(let i=0;i<3;i++){const rr=44+((T*30+i*16)%48);g.globalAlpha=.6*(1-(rr-44)/48);g.beginPath();g.arc(20,0,rr,-.6,.6);g.stroke();}}
+  if(playing){g.strokeStyle=d===0?"#fff":"hsl(40 100% 72%)";g.lineWidth=2;for(let i=0;i<3;i++){const rr=44+((T*30+i*16)%48);g.globalAlpha=.6*(1-(rr-44)/48);g.beginPath();g.arc(20,0,rr,-.6,.6);g.stroke();}}
   g.restore();
-  // string of festival bulbs across the top
-  for(let i=0;i<=24;i++){const u=i/24;g.fillStyle=`hsl(${[45,0,130,200][i%4]} 95% 62% / ${.4+.6*(.5+.5*Math.sin(T*3+i*1.7))})`;g.beginPath();g.arc(u*W,8+Math.sin(u*Math.PI)*16,2.5,0,7);g.fill();}
+  // string of festival bulbs across the middle sky, lit once it is dark enough
+  if(d!==0)for(let i=0;i<=26;i++){const v=i/26;g.fillStyle=`hsl(${[45,0,130,200][i%4]} 95% 62% / ${.4+.6*(.5+.5*Math.sin(T*3+i*1.7))})`;dot(v*W,H*.33+Math.sin(v*Math.PI)*H*.035,2.6);}
   if(!still)requestAnimationFrame(draw);}
-const still=matchMedia("(prefers-reduced-motion:reduce)").matches;
 requestAnimationFrame(draw);if(still)addEventListener("resize",()=>requestAnimationFrame(draw));
 
 $("pl").href="https://www.youtube.com/watch_videos?video_ids="+S.slice(0,50).map(s=>s[0]).join(",");
-render();load(0,false);
+setDay(todayIdx>=0?todayIdx:now0.getHours()<12?3:2);
 </script>
 </body>
 </html>
