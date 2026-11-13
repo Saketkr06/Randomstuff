@@ -44,6 +44,15 @@ h1{font:400 clamp(1.5rem,4.5vw,2.2rem)/1.1 var(--display);margin:0;color:var(--m
 .day[aria-pressed="true"] small{color:#4a2c00}
 .cap{margin:0;max-width:60ch;text-shadow:0 1px 6px #000}
 .cap b{font:400 1.25rem var(--display);color:var(--marigold);margin-right:8px}
+.cap strong{font-weight:800;margin-right:8px}
+/* what stays on the clean screen: the day in bold, the days still to come, and the song name in see-through white */
+.stay{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .6s;display:flex;flex-direction:column;justify-content:space-between;padding:22px 24px 30px;text-shadow:0 2px 10px rgba(0,0,0,.55)}
+body.idle .stay{opacity:1}
+.stay b{display:block;font:400 clamp(2.2rem,5.5vw,3.8rem)/1.1 var(--display);color:#fff}
+.stay strong{display:block;font-weight:800;font-size:clamp(1.15rem,2.4vw,1.7rem);color:#fff}
+.stay ul{list-style:none;margin:10px 0 0;padding:0;font-weight:600;font-size:clamp(.95rem,1.8vw,1.25rem);color:rgba(255,255,255,.88)}
+.stay .song{text-align:center;font:400 clamp(1.7rem,5vw,3.4rem)/1.2 var(--display);color:rgba(255,255,255,.62);text-wrap:balance}
+.stay .song small{display:block;font:600 clamp(.95rem,1.8vw,1.25rem) var(--body);color:rgba(255,255,255,.6)}
 .note{background:var(--ghat);border-left:4px solid var(--marigold);padding:8px 12px;border-radius:6px;margin:0;max-width:70ch}
 .note[hidden]{display:none}
 .bottom{padding:56px 16px 16px;background:linear-gradient(transparent,rgba(10,5,20,.9) 50%);display:grid;gap:10px}
@@ -96,6 +105,8 @@ body:not(.playing) .eq i{animation-play-state:paused}
 <body>
 <div class="video"><div id="player"></div></div>
 <canvas id="cv" aria-hidden="true"></canvas>
+
+<div class="stay" aria-hidden="true"><div id="sday"></div><div class="song"><span id="st"></span><small id="sa"></small></div></div>
 
 <div class="ui">
   <header class="top">
@@ -264,7 +275,9 @@ $("days").innerHTML=DAYS.map((d,i)=>`<button class="day" data-d="${i}" aria-pres
 $("days").onclick=e=>{const b=e.target.closest(".day");if(b)setDay(+b.dataset.d);};
 function setDay(d){day=d;const D=DAYS[d];
   document.querySelectorAll(".day").forEach((b,i)=>b.setAttribute("aria-pressed",i===d));
-  $("cap").innerHTML=`<b>${D.h}</b>${D.line}`;
+  const when=(i)=>(i===todayIdx?"Today, ":i===todayIdx+1&&todayIdx>=0?"Tomorrow, ":"")+DAYS[i].date;
+  $("cap").innerHTML=`<b>${D.h}</b><strong>${D.k} · ${when(d)}</strong>${D.line}`;
+  $("sday").innerHTML=`<b>${D.h}</b><strong>${D.k} · ${when(d)}</strong><ul>${DAYS.map((x,i)=>i>d?`<li>${x.k} · ${when(i)}</li>`:"").join("")}</ul>`;
   const all=S.map((s,i)=>i);order=all.filter(fits).concat(all.filter(i=>!fits(i)));
   $("fitline").textContent=`Songs that fit ${D.k} play first. "Song only" keeps to uploads with no story scenes.`;
   render();if(!playing)load(shown()[0]??order[0],false);}
@@ -289,7 +302,7 @@ addEventListener("keydown",e=>{if(e.key==="Escape")panel(false);});
 
 /* ---------- player ---------- */
 function load(i,autoplay){cur=i;const s=S[i];$("nt").textContent=s[4];$("na").textContent=s[5]+" · "+views(s[1])+" views";
-  $("err").hidden=true;scene=makeScene(s[0]);
+  $("st").textContent=s[4];$("sa").textContent=s[5];$("err").hidden=true;scene=makeScene(s[0]);
   document.querySelectorAll("#list li").forEach(li=>li.classList.toggle("on",+li.dataset.i===i));
   if(ready)autoplay?player.loadVideoById(s[0]):player.cueVideoById(s[0]);}
 function step(d){const ids=shown().length?shown():order;let p=ids.indexOf(cur);
