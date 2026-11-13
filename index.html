@@ -26,7 +26,7 @@ body{background:var(--river);color:var(--thekua);font:400 16px/1.5 var(--body);o
 a{color:inherit}
 #cv{position:fixed;inset:0;width:100%;height:100%;z-index:1;display:block}
 /* the YouTube player only supplies the sound; it sits behind the scene */
-.video{position:fixed;left:0;bottom:0;width:320px;height:180px;z-index:0;pointer-events:none}
+.video{position:fixed;left:0;bottom:0;width:320px;height:180px;z-index:0;pointer-events:none;opacity:0}
 .video iframe,.video>div{width:100%;height:100%;border:0;display:block}
 .ui{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
 .ui>*{pointer-events:auto}
@@ -64,7 +64,7 @@ button.b[aria-pressed="true"],.chip[aria-pressed="true"]{border-color:var(--mari
 .phead p{margin:0;color:var(--smoke);font-size:.9rem}
 .phead input{flex:1 1 160px;min-width:0;font:400 1rem var(--body);color:var(--thekua);background:var(--ghat);border:1px solid var(--step);border-radius:999px;padding:8px 16px}
 ol{list-style:none;margin:0;padding:8px;display:grid;gap:4px;overflow-y:auto;flex:1;align-content:start}
-li a{display:grid;grid-template-columns:2rem 64px minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 8px 6px 2px;border-radius:10px;text-decoration:none;border:1px solid transparent}
+li a{display:grid;grid-template-columns:2rem minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 8px 6px 2px;border-radius:10px;text-decoration:none;border:1px solid transparent}
 li a:hover{background:var(--ghat)}
 li.on a{background:var(--ghat);border-color:var(--sindoor)}
 .rk{font:400 1.05rem var(--display);color:var(--marigold);text-align:center;font-variant-numeric:tabular-nums}
@@ -270,7 +270,6 @@ function shown(){const q=$("q").value.trim().toLowerCase();
 function render(){
   list.innerHTML=shown().map(i=>{const s=S[i];return `<li data-i="${i}"${i===cur?' class="on"':''}><a href="https://www.youtube.com/watch?v=${s[0]}" target="_blank" rel="noopener">
   <div class="rk"><span>${i+1}</span><div class="eq"><i></i><i></i><i></i></div></div>
-  <img loading="lazy" alt="" src="https://i.ytimg.com/vi/${s[0]}/mqdefault.jpg">
   <div><div class="ti">${s[4]}${s[3]?'<span class="tag new">NEW</span>':''}${fits(i)?`<span class="tag fit">${DAYS[day].k}</span>`:''}</div><div class="ar">${s[5]}</div></div>
   <div class="meta"><b>${views(s[1])}</b>${s[2]}</div></a></li>`}).join("")||'<li class="empty">No song matches. Try a shorter search.</li>';}
 list.addEventListener("click",e=>{const li=e.target.closest("li[data-i]");if(!li||isFile)return;e.preventDefault();load(+li.dataset.i,true);});
@@ -325,6 +324,20 @@ const cv=$("cv"),g=cv.getContext("2d"),still=matchMedia("(prefers-reduced-motion
 const dot=(x,y,r)=>{g.beginPath();g.arc(x,y,r,0,7);g.fill();};
 const oval=(x,y,a,b)=>{g.beginPath();g.ellipse(x,y,a,b,0,0,7);g.fill();};
 
+const CL=(()=>{const r=rng("clouds");return Array.from({length:5},()=>({x:r(),y:.1+r()*.3,s:.7+r()*.8,v:.003+r()*.004}));})();
+const SP=(()=>{const r=rng("sparkle");return Array.from({length:60},()=>[r(),r(),r()*6.3]);})();
+const hash=n=>{const x=Math.sin(n*127.1)*43758.5453;return x-Math.floor(x);};
+// a devotee standing in the river. dip 0..1 takes them under water; soop = holding the offering towards the sun
+function person(x,wy,q,dip,soop,dir,col,ring){
+  g.strokeStyle=ring;g.lineWidth=1;
+  for(let i=0;i<2;i++){const t=(T*.5+i*.5+x)%1;g.globalAlpha=1-t;g.beginPath();g.ellipse(x,wy,q*(4+t*9),q*(.8+t*1.6),0,0,7);g.stroke();}
+  g.globalAlpha=1;g.save();g.beginPath();g.rect(x-14*q,wy-34*q,28*q,34*q);g.clip();g.translate(x,wy+dip*15*q);g.fillStyle=col;g.strokeStyle=col;g.lineCap="round";
+  g.beginPath();g.moveTo(-2.8*q,0);g.lineTo(-2*q,-9*q);g.lineTo(2*q,-9*q);g.lineTo(2.8*q,0);g.fill();dot(0,-11.2*q,1.8*q);
+  if(soop){g.lineWidth=1.3*q;g.beginPath();g.moveTo(0,-8*q);g.lineTo(dir*5*q,-9.5*q);g.stroke();
+    g.beginPath();g.ellipse(dir*6.5*q,-10*q,3.2*q,1*q,0,0,7);g.fill();
+    g.fillStyle="#ffd772";oval(dir*6.5*q,-12*q,.5*q,1.2*q*(.8+.2*Math.sin(T*9+x)));}
+  else{g.lineWidth=1.2*q;g.beginPath();g.moveTo(-1.6*q,-8*q);g.lineTo(0,-13.5*q);g.lineTo(1.6*q,-8*q);g.stroke();}
+  g.restore();}
 function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(playing?1:.15);
   const dpr=Math.min(2,devicePixelRatio||1),W=innerWidth,H=innerHeight;
   if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);}
@@ -343,6 +356,8 @@ function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(pla
   // stars: all night on Kharna, fading at dawn, appearing at dusk
   const sa=d===1?1:d===3?1-a*1.7:d===2?p*1.6-.7:0;
   if(sa>0){g.fillStyle="#fff";for(const st of STARS){g.globalAlpha=Math.min(1,sa)*st[2]*(.6+.4*Math.sin(T*2+st[3]));dot(st[0]*W,st[1]*H,1.2);}g.globalAlpha=1;}
+  if(d===1){const ph=T/7,n=Math.floor(ph),t=(ph-n)*5;if(t<1){const x=W*(.2+hash(n)*.6)+t*W*.18,y=H*(.05+hash(n+9)*.2)+t*H*.1;   // shooting star
+    g.strokeStyle=`rgba(255,255,255,${1-t})`;g.lineWidth=2;g.beginPath();g.moveTo(x,y);g.lineTo(x-W*.05,y-H*.028);g.stroke();}}
   // sun or moon
   const cx=W*s.sunX;let cy,R;
   if(d===1){R=u*5.5;cy=H*.2;
@@ -358,6 +373,12 @@ function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(pla
     g.setTransform(dpr,0,0,dpr,0,0);
     gr=g.createRadialGradient(cx,cy,0,cx,cy,R);gr.addColorStop(0,"#fff8de");gr.addColorStop(.6,`hsl(${hue} 96% ${d===0?72:58}%)`);gr.addColorStop(1,`hsl(${hue-8} 95% ${d===0?62:48}%)`);
     g.fillStyle=gr;dot(cx,cy,R);g.restore();}
+  // drifting clouds
+  g.fillStyle=d===0?"rgba(255,255,255,.85)":`hsl(${hue} 70% 80% / ${d===1?.1:.2})`;
+  for(const c of CL){const x=((c.x+T*c.v)%1.3-.15)*W,y=c.y*hz,q=u*4*c.s;oval(x,y,q*3,q);oval(x-q*2,y+q*.3,q*1.8,q*.8);oval(x+q*2,y+q*.2,q*2,q*.9);oval(x+q*.5,y-q*.6,q*1.6,q*.9);}
+  // crackers over the ghat on the two arghya days
+  if(d>=2)for(let k=0;k<3;k++){const ph=T/3.2+k/3,n=Math.floor(ph),t=ph-n,fx=W*(.15+hash(n*3+k)*.7),fy=hz*(.2+hash(n*7+k)*.35),fr=u*(6+hash(n+k)*6)*(1-Math.pow(1-t,3));
+    g.fillStyle=`hsl(${hash(n*5+k)*360} 100% 70% / ${(1-t)*.9})`;for(let j=0;j<14;j++){const an=j/14*6.283;dot(fx+Math.cos(an)*fr,fy+Math.sin(an)*fr+t*t*u*3,1.6);}}
   // birds in the morning light
   if(d===0||(d===3&&a>.3)){g.strokeStyle=sil;g.lineWidth=1.6;for(const b of s.birds){const x=((b.x+T*b.v)%1.2-.1)*W,y=H*(.14+b.y*.22),f=Math.sin(T*6+b.p)*4;
     g.beginPath();g.moveTo(x-9,y+f);g.quadraticCurveTo(x-4,y-4,x,y);g.quadraticCurveTo(x+4,y-4,x+9,y+f);g.stroke();}}
@@ -365,18 +386,31 @@ function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(pla
   gr=g.createLinearGradient(0,hz,0,H);gr.addColorStop(0,w1);gr.addColorStop(1,w2);g.fillStyle=gr;g.fillRect(0,hz,W,H-hz);
   g.fillStyle=d===1?"hsl(50 60% 88% / .35)":`hsl(${hue+10} 100% ${d===0?88:66}% / .55)`;
   if(d===1||cy-R<hz)for(let k=0;k<14;k++){const y=hz+5+k*(H-hz)/22,w=R*(1.1+k*.24)*(.6+.4*Math.sin(T*1.6+k*1.3));g.fillRect(cx-w/2+Math.sin(T+k)*6,y,w,2);}
+  // morning sparkle on the water
+  if(d===0){g.fillStyle="#fff";for(const q of SP){g.globalAlpha=Math.pow(Math.max(0,Math.sin(T*2.5+q[2])),8);dot(q[0]*W,hz+4+q[1]*(H-hz)*.5,1.7);}g.globalAlpha=1;}
+  // mist over the river at dawn and in the morning
+  if(d===0||d===3){g.fillStyle=`rgba(255,255,255,${d===0?.1:.03+.1*(1-a)})`;for(let i=0;i<5;i++)oval((((i*.27+T*.004*(i%2?1:-1))%1.2+1.2)%1.2-.1)*W,hz+(i%3)*u*2,W*.28,u*2.4);}
+  // a boat going by
+  if(d===0||d===3){const bx=((T*.008+.25)%1.3-.15)*W,by=hz+H*.035+Math.sin(T)*1.5;g.fillStyle=sil;
+    g.beginPath();g.moveTo(bx-6*u,by-1*u);g.quadraticCurveTo(bx,by+3.4*u,bx+6*u,by-1*u);g.fill();
+    g.fillRect(bx+1.6*u,by-5*u,.9*u,4.6*u);dot(bx+2*u,by-5.8*u,.9*u);
+    g.strokeStyle=sil;g.lineWidth=1.5;g.beginPath();g.moveTo(bx+2.4*u,by-4*u);g.lineTo(bx+5*u+Math.sin(T*1.5)*u,by+3*u);g.stroke();}
   // diyas on the water: a few on Kharna night, many on the two arghya days
   const nd=d===0?0:d===1?4:s.diyas.length;
   for(let i=0;i<nd;i++){const o=s.diyas[i],x=((o.x+T*o.v)%1.1-.05)*W,y=hz+10+o.y*(H-hz)*.42+Math.sin(T*1.2+o.p)*1.5,sc=.7+o.y*.8,f=.75+.25*Math.sin(T*9+o.p)+beat*.3;
     g.fillStyle=`hsl(40 100% 60% / ${.16*f})`;dot(x,y-4*sc,12*sc*f);
     g.fillStyle="#5b2b12";oval(x,y,6*sc,2.4*sc);g.fillStyle="#ffd772";oval(x,y-4*sc,1.6*sc,3.4*sc*f);}
+  // devotees in the river: taking the holy dip on Nahay Khay, offering arghya to the sun on the two arghya days
+  if(d!==1)[.34,.45,.6,.71,.8].forEach((fx,i)=>{const x=fx*W,wy=hz+H*(.07+(i%2)*.06),q=u*(.6+(i%2)*.25);
+    person(x,wy,q,d===0?Math.pow(Math.max(0,Math.sin(T*.7+i*1.9)),2)*.85:0,d!==0,cx<x?-1:1,sil,d===0?"rgba(255,255,255,.55)":"rgba(255,220,160,.4)");});
   // ghat steps on the left bank
   g.fillStyle=sil;for(let i=0;i<4;i++)g.fillRect(0,H*(.63+i*.05),W*(.22+i*.09),H);
   const gx=W*.11,gy=H*.63;
   if(d===0){ // brass kalash with mango leaves and a coconut
-    g.fillStyle="#2f7d3a";for(let i=-2;i<=2;i++){g.save();g.translate(gx,gy-8.5*u);g.rotate(i*.5);oval(0,-3*u,.9*u,3*u);g.restore();}
+    g.fillStyle="#2f7d3a";for(let i=-2;i<=2;i++){g.save();g.translate(gx,gy-8.5*u);g.rotate(i*.5+Math.sin(T*1.3+i)*.07);oval(0,-3*u,.9*u,3*u);g.restore();}
     g.fillStyle="#6a4424";dot(gx,gy-9.5*u,2*u);g.fillStyle="#d9992e";oval(gx,gy-4*u,4.4*u,4*u);g.fillRect(gx-2*u,gy-8.6*u,4*u,1.6*u);
-    g.fillStyle="#f3c257";oval(gx-1.4*u,gy-5*u,1*u,1.8*u);}
+    g.fillStyle="#f3c257";oval(gx-1.4*u,gy-5*u,1*u,1.8*u);
+    g.save();g.translate(gx+12*u,gy-1.8*u);g.rotate(-.12);g.fillStyle="#8cc152";oval(0,0,6*u,1.7*u);oval(4.6*u,0,2.7*u,2.3*u);g.fillStyle="#5d8a35";g.fillRect(-7.4*u,-.3*u,1.7*u,.6*u);g.restore();}   // kaddu for the kaddu-bhaat
   else if(d===1){ // clay stove with kheer on the fire
     const f=.7+.3*Math.sin(T*11)+beat*.3;
     gr=g.createRadialGradient(gx,gy-4*u,0,gx,gy-4*u,26*u);gr.addColorStop(0,`hsl(28 100% 58% / ${.42*f})`);gr.addColorStop(1,"transparent");g.fillStyle=gr;g.fillRect(gx-26*u,gy-30*u,52*u,40*u);
@@ -384,7 +418,10 @@ function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(pla
     g.fillStyle="#ff9a2e";g.beginPath();g.arc(gx,gy,2.8*u,Math.PI,0);g.fill();
     for(let i=-1;i<=1;i++){const h=(2.4+1.4*Math.sin(T*9+i*2)+beat*1.6)*u;g.fillStyle=i?"#ff7a1a":"#ffd25e";oval(gx+i*3.3*u,gy-6.5*u-h*.6,1.1*u,h);}
     g.fillStyle="#1c100a";oval(gx,gy-10.5*u,5.4*u,3.6*u);g.fillRect(gx-4.2*u,gy-14.6*u,8.4*u,1.3*u);
-    g.strokeStyle="rgba(255,255,255,.28)";g.lineWidth=1.5;for(let i=0;i<3;i++){const sx=gx+(i-1)*2.4*u,o=Math.sin(T*2+i)*2*u;g.beginPath();g.moveTo(sx,gy-15.5*u);g.quadraticCurveTo(sx+o,gy-20*u,sx-o*.5,gy-25*u);g.stroke();}}
+    g.strokeStyle="rgba(255,255,255,.28)";g.lineWidth=1.5;for(let i=0;i<3;i++){const sx=gx+(i-1)*2.4*u,o=Math.sin(T*2+i)*2*u;g.beginPath();g.moveTo(sx,gy-15.5*u);g.quadraticCurveTo(sx+o,gy-20*u,sx-o*.5,gy-25*u);g.stroke();}
+    for(let i=0;i<14;i++){const t=(T*.5+hash(i))%1;g.fillStyle=`hsl(${30+hash(i)*20} 100% 65% / ${1-t})`;dot(gx+(hash(i+3)-.5)*8*u+Math.sin(T*2+i)*u*t*3,gy-8*u-t*22*u,1.5);}   // sparks
+    const sx=gx+14*u;g.fillStyle="#24130f";oval(sx,gy-3.4*u,4.4*u,3.6*u);oval(sx-.6*u,gy-8.4*u,2.5*u,3.8*u);dot(sx-1*u,gy-13.2*u,1.9*u);                               // the vrati, stirring the kheer
+    g.strokeStyle="#24130f";g.lineWidth=1.3*u;g.lineCap="round";g.beginPath();g.moveTo(sx-2*u,gy-9.5*u);g.lineTo(gx+3.5*u+Math.sin(T*2)*1.6*u,gy-15*u);g.stroke();}
   else{ // soop and daura with fruit and a diya
     for(const [bx,sz] of [[gx-3*u,1],[gx+9*u,.75]]){const q=u*sz,f=.8+.2*Math.sin(T*9+bx)+beat*.3;
       g.fillStyle="#f29a1f";dot(bx-3.4*q,gy-3.6*q,1.9*q);g.fillStyle="#e9d24a";dot(bx+3.2*q,gy-3.6*q,1.7*q);g.fillStyle="#7fae3c";dot(bx,gy-4.4*q,2*q);
@@ -396,6 +433,7 @@ function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(pla
       g.lineWidth=4;g.beginPath();g.moveTo(bx,H);g.quadraticCurveTo(bx,H*.6,tx,ty);g.stroke();
       g.lineWidth=2;for(let l=0;l<4;l++){g.beginPath();g.moveTo(tx,ty);g.quadraticCurveTo(tx-(18+l*8),ty-20+l*12,tx-(34+l*12)+sw,ty+10+l*16);g.stroke();
         g.beginPath();g.moveTo(tx,ty);g.quadraticCurveTo(tx+(12+l*6),ty-18+l*10,tx+(22+l*9)+sw,ty+8+l*14);g.stroke();}}}
+  if(d===1)for(let i=0;i<12;i++){g.fillStyle=`hsl(70 100% 70% / ${.4+.4*Math.sin(T*3+i)})`;dot(W*(.2+hash(i)*.7)+Math.sin(T*.5+i)*u*4,H*(.36+hash(i+20)*.2)+Math.cos(T*.4+i*2)*u*3,1.6);}   // fireflies
   // loudspeaker on a bamboo pole: the real sound system of every ghat
   const px=W*.9,py=H*.34,pk=1+beat*.1;
   g.strokeStyle=sil;g.lineWidth=5;g.lineCap="butt";g.beginPath();g.moveTo(px,H);g.lineTo(px,py-10);g.stroke();
