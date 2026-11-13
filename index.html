@@ -76,6 +76,7 @@ li img{width:64px;aspect-ratio:16/9;object-fit:cover;border-radius:6px;backgroun
 .tag{display:inline-block;font-weight:800;font-size:.68rem;border-radius:4px;padding:0 5px;margin-left:6px;vertical-align:1px}
 .tag.new{background:var(--marigold);color:#2a1500}
 .tag.fit{border:1px solid var(--marigold);color:var(--marigold)}
+.tag.vid{border:1px solid var(--step);color:var(--smoke)}
 .eq{display:none;gap:2px;height:14px;align-items:flex-end;justify-content:center}
 li.on .eq{display:flex}li.on .rk span{display:none}
 .eq i{width:3px;background:var(--sindoor);height:100%;transform-origin:bottom;animation:eq .9s ease-in-out infinite alternate}
@@ -117,7 +118,8 @@ body:not(.playing) .eq i{animation-play-state:paused}
     <div><h2>100 songs</h2><button class="b" id="close">Hide songs</button></div>
     <p id="fitline"></p>
     <div>
-      <button class="chip" data-f="all" aria-pressed="true">All</button>
+      <button class="chip" data-f="song" aria-pressed="true">Song only</button>
+      <button class="chip" data-f="all" aria-pressed="false">All 100</button>
       <button class="chip" data-f="fit" aria-pressed="false">For this day</button>
       <button class="chip" data-f="new" aria-pressed="false">New</button>
       <input id="q" type="search" placeholder="Search song or singer" aria-label="Search song or singer">
@@ -126,113 +128,113 @@ body:not(.playing) .eq i{animation-play-state:paused}
   <ol id="list"></ol>
   <div class="pfoot">
     <a class="chip" id="pl" target="_blank" rel="noopener" style="justify-self:start">Open the top 50 as a YouTube playlist</a>
-    <span>Ranked by YouTube views on 13 November 2026, in lakh (L) and crore (Cr). New means released in the last 12 months.</span>
+    <span>Ranked by the YouTube views of the main upload on 13 November 2026, in lakh (L) and crore (Cr). New means released in the last 12 months.</span>
   </div>
 </aside>
 
 <script>
-// [videoId, views in lakh, length, new?, song, singer or channel]
+// [videoId, views in lakh, length, new?, song, singer or channel, song-only upload? (audio or lyrics version, no story scenes)]
 const S=[
-["6e6Hp6R5SVU",3352,"5:53",0,"Uga Hai Suraj Dev","Anuradha Paudwal"],
-["BKoD7bTLc2k",2450,"5:27",0,"Jode Jode Falwa","Pawan Singh"],
-["054aYEl728U",1747,"6:07",0,"Rovele Banjhiniya","Akshara Singh"],
-["fCuHD3YBQKY",1732,"4:29",0,"Chhath Ghate Chali","Khesari Lal Yadav, Antra Singh Priyanka"],
-["aLbXQ9VIxKI",1435,"5:40",0,"Chhath Mai Ke Baratiya","Khesari Lal Yadav"],
-["Eyq7vfxu4iA",1392,"5:39",0,"Kaanch Hi Baans Ke Bahangiya","Anuradha Paudwal"],
-["wXv2MyuVOZQ",1378,"6:35",0,"Chahi Nahi An Dhan Khajanwa","Arvind Akela Kallu, Nisha"],
-["aAnoW6E3M1o",1271,"6:12",0,"Sawa Lakh Ke Saree Bheeje","Anu Dubey"],
-["Kc0D3A5Rcd8",1178,"4:05",0,"Chhapra Mein Chhath Manayenge","Khesari Lal Yadav, Kajal Raghwani"],
-["knZ8b5YnQiY",1148,"8:35",0,"Kelwa Ke Paat Par (New Version)","T-Series Bhakti Sagar"],
-["7R9tDvnAfMo",915,"6:09",0,"Kaanch Hi Baans Ke Bahangiya","Arvind Akela Kallu"],
-["W-GPLC-Lt6Y",914,"5:40",0,"Kareli Chhathi Mai Ke Vrat","Kalpana Patowary"],
-["lnj52n6k9-A",867,"4:03",0,"Ghare Ghare Hota Chhathi Mai Ke Baratiya","Amrapali Dubey"],
-["YjX78e66enk",845,"4:00",0,"Patna Ke Ghat Neek Lagela","Khesari Lal Yadav"],
-["DG8F-csoRAQ",823,"7:01",0,"Pahile Pahil Chhathi Maiya","Sharda Sinha"],
-["KvOeeZB1_70",796,"3:55",0,"Mai Ghare Rowat Hoihe","Pawan Singh"],
-["Yz1XBzbaSoM",753,"4:44",0,"Jai Chhathi Maiya","Sonu Nigam, Pawan Singh, Khushboo Jain"],
-["epQB_o53AX8",739,"7:27",0,"Patna Se Nimbua Mangaini","Anu Dubey"],
-["jRsXRee52xw",688,"6:43",0,"Maarbo Re Sugwa Dhanukh Se","Anuradha Paudwal"],
-["cQ2eX4SrkNg",686,"9:56",0,"Pahile Pahile Baani Kaile Chhathi Maiya","Dinesh Lal Yadav, Amrapali Dubey"],
-["JXnbpAY3igM",666,"4:41",0,"Making Ke Fera Aragh Ke Bera","Khesari Lal Yadav"],
-["KWvgJvM2zT0",598,"6:54",0,"Ho Deenanath (New Version)","Sharda Sinha"],
-["FCRb4kjnRx4",584,"3:31",0,"Chhathi Maiya (The VVAAN)","Zee Music Company"],
-["zaUyuCUTbyA",580,"6:54",0,"Paramparik Chhath Geet","Pawan Singh"],
-["fOVGz9WFymU",577,"3:47",0,"Ho Deenanath","Sharda Sinha"],
-["YVrZBmI9_ag",548,"6:26",0,"Kopi Kopi Boleli","Devi"],
-["9hwAiJ4fzog",530,"4:37",0,"Koshiya Bharaye Lagal","Neelkamal Singh, Priyanka Singh"],
-["6diXoexNQ58",530,"4:37",0,"Chhathi Mai Ke Ghatwa Pe Aajan Baajan","Pawan Singh"],
-["BktbNj2TzPs",504,"6:37",0,"Kopi Kopi Boleli Chhathi Maiya","Anu Dubey"],
-["WsvuH5QO23I",502,"8:47",0,"Kelwa Ke Paat Par","Devi"],
-["G7bD1QSIxtM",456,"6:16",0,"Babua Je Rahte Mai","Pawan Singh"],
-["4JdNlcumkoM",454,"3:14",0,"Piyari Pahir La","Pawan Singh, Shivani Singh"],
-["8BfbY0vb7Ro",448,"5:45",0,"Aahe Aaditmal","Karina Pandey, Sovita Pandey"],
-["IKAJdLAviYw",412,"3:54",0,"Ghunti Bhar Mor Dhoti Bheeje","Khesari Lal Yadav"],
-["FGQ0SCK1AtE",398,"5:56",0,"Ugi He Dinanath","Kalpana Patowary"],
-["-mpGoG0nWPo",397,"8:25",0,"Kelwa Ke Paat Par","Sharda Sinha"],
-["SWCcS09lV7w",392,"7:30",0,"Orie Orie Madhu Chuve","Pawan Singh"],
-["qPPhTg0WBMw",392,"5:23",0,"Kaanch Hi Baans Ke Bahangiya","Akshara Singh"],
-["G3PMFpftpbg",391,"5:15",0,"Jode Jode Supwa Tora Chadhaibo","Kalpana Patowary"],
-["C7SM6nuEMIk",391,"5:16",0,"Kekra Khatir Bhukhelu Chhathwa","Arvind Akela Kallu"],
-["oqi4EdCAGIM",383,"4:23",0,"Dhaniya Hamar Naya Baadi Ho","Pawan Singh"],
-["Z752z_dAQrY",368,"3:58",0,"Nariyal","Khesari Lal Yadav, Shilpi Raj"],
-["UnBc9RUmwKM",362,"4:09",0,"Chhath Kare Aai","Ritesh Pandey, Antra Singh"],
-["j9G3caThH98",345,"5:19",0,"Uthau Suruj Bhaile Bihaan","Sharda Sinha"],
-["uWtMR3iQT-I",345,"4:27",0,"Kerwa Ke Patwa Pe Newta","Pawan Singh"],
-["z3TKq9LVbzM",342,"4:39",0,"Ugi Suruj Dev","Pawan Singh"],
-["MEnyozGodAU",317,"9:01",0,"Baanjhi Kewdwa Dhaile Thaadh","Sharda Sinha"],
-["WlMzDuy1dy8",306,"6:17",0,"Bhail Araghiya Ke Ber","Arvind Akela Kallu, Nisha"],
-["qjzjmFIJemE",302,"4:33",0,"Kekar Ghar Ke Phulwa (Magahi)","Aashish Yadav"],
-["VkYrntXiEX8",300,"4:47",0,"Patna Ke Ghatwa Par Baaje","T-Series Bhakti Sagar"],
-["CZJYUCAO7lM",284,"5:27",0,"Jode Jode Falwa, Sitali Bayariya","Ansha Baby"],
-["V4_ZiIi68L0",261,"4:50",0,"Yug Yug Rakhiha Suhag He Chhathi Maiya","Kalpana Patowary"],
-["Pc3-aAmY47k",255,"3:49",0,"Hoihe Sahaiya","Pramod Premi Yadav"],
-["k8Cmfe5HsF8",250,"3:40",0,"Army Lover Pa Kripa Kadi Chhathi Maiya","Tuntun Yadav, Shilpi Raj"],
-["X7Y3OX6TY4U",240,"5:33",0,"Aadit Manaila","Anuradha Paudwal"],
-["sIAgTGsgLHI",235,"5:39",0,"Kare Mai Kathin Baratiya","Swati Mishra"],
-["waKku0zzRyY",235,"6:19",0,"Kahanva Tohar Naihara Ge Dhobin","T-Series Bhakti Sagar"],
-["TZC1_Og2Pm0",234,"4:13",0,"Aso Chhath Karab Naihar Mein","Ankush Raja, Shilpi Raj"],
-["yt_8_NaCWGk",227,"6:15",0,"Rauwa Se Ehe Hathjoriya","Pawan Singh"],
-["JG-qK3vgI_o",225,"6:14",0,"Ugi He Dinanath (Chhath Special)","Kalpana Patowary"],
-["A3Xhfnmk4y4",223,"5:58",0,"Aragh Mora Lei Lihin","Pink Music Bhojpuri"],
-["4B7Epg85nfI",222,"6:11",0,"Hey Ganga Maiya","Sharda Sinha"],
-["38mTaX7LkgY",218,"3:42",0,"Chala Ganga Kinare","Khesari Lal Yadav"],
-["OrlnX9zM5-k",213,"5:09",0,"Chhathi Maiya Bulaye","Vishal Mishra, Kaushal Kishore"],
-["px11PiCUUy8",211,"5:13",0,"Ugi Hey Dinanath","Swati Mishra"],
-["slbFmUj2l-M",205,"3:33",0,"Chhathi Maiya","Khesari Lal Yadav, Antra Singh"],
-["B3jDGu4fy-w",202,"4:08",0,"Chhath Kaili Kaniya","Arvind Akela Kallu"],
-["27ql9apTxBU",197,"3:26",0,"Staron Ka Chhath","Arvind Akela Kallu, Antra Singh"],
-["NkDiSj9c1EA",196,"6:05",0,"Dukhwa Mitayin Chhathi Maiya","Sharda Sinha"],
-["T_YXL_blE3A",193,"4:50",0,"Darshan Dekhai Dihi","Kalpana Patowary"],
-["BZLSeOy5tyE",180,"3:36",0,"Bhukhlu Ta (Chhath Geet 2019)","Pramod Premi Yadav"],
-["H4l6ss-HkYk",179,"6:21",0,"Sanghe Jaayem Ae Balam Ji","T-Series Bhakti Sagar"],
-["e22S1dwxlkk",170,"7:42",0,"Buxar Ke Pakki Re Sadakiya","Arvind Akela Kallu"],
-["O4ARvvmllCA",165,"5:54",0,"Tohe Badka Bhaiya Ho","Sharda Sinha"],
-["cfGCFbzoInI",165,"3:26",0,"Saloni Ke Mummy Kathua Jaibu","Arvind Akela Kallu"],
-["oiuQgAJhcxk",161,"6:06",0,"Penhle Mahadev Piyariya","Pawan Singh"],
-["VJq6aMPw9W4",160,"5:36",0,"Chala Patna Ke Ghat","Pawan Singh"],
-["PL2eykuoUbI",156,"6:30",0,"Akshara Singh Ka Chhath Geet","Akshara Singh"],
-["Pk3cYw5Wonw",154,"4:17",0,"Chhathi Maiya Deda Ego Lalna","Kalpana Patowary"],
-["qX4uJFC2aUs",149,"5:00",0,"Naahin Jootal Phal Phool","T-Series Bhakti Sagar"],
-["FPDKM5NidYM",141,"4:40",0,"Kawna Kalamwa Se Likhla Karamwa","Pawan Singh, Priyanka Singh"],
-["pp0bO8uro64",141,"5:22",0,"Kahawa Paibo Sone Ke Katorwa","Anu Dubey"],
-["bL6rp6eI_2k",140,"6:29",0,"Chhath Ke Baratiya","Sharda Sinha"],
-["Hu5bAyznURA",139,"3:32",0,"Dhaniya Aawatani Chhath Kare","Arvind Akela Kallu"],
-["2fFXDHk2TLs",132,"7:26",0,"Jode Jode Nariyal","Devi"],
-["nvT9w2fcfGE",132,"5:20",0,"Kath Ke Re Naiya","Kalpana Patowary"],
-["6V2HibWFYzI",122,"6:46",0,"Chadhti Katikwa Chhath Maiya Aili","Anu Dubey"],
-["QVW0isaTJZ8",50,"3:24",1,"Chaar Hi Chakka Ke Motarwa","T-Series Hamaar Bhojpuri"],
-["7EtBzGj4AyY",9,"4:00",1,"Dhaniya Mor Shahri Baadi","Khesari Lal Yadav, Pallavi Singh"],
-["wc2rJFMgRjY",9,"3:46",1,"Jawan Ghat Sajaib Hum","Pramod Premi Yadav"],
-["IoQZuhMCyYk",7,"4:54",1,"Hum Chhath Karab","Anu Dubey"],
-["QMfyJaGAriU",6,"5:10",1,"Chhath Ke Baratiya","Akshara Singh, Sugam Singh"],
-["yAt9nV2uvYw",5,"5:05",1,"Lagungi Beautiful Piya Ghat Pe","Shilpi Raj"],
-["CMTJom5zZ3s",1,"3:01",1,"Hoi Je Balakwa","Pramod Premi Yadav"],
-["PwrQIEp7VzU",1,"8:58",1,"Bitiya Hamar","Kalpana Patowary"],
-["PttFbA0FWdI",1,"5:15",1,"Ugi He Suruj Mal Naiyo Na Dole","Pawan Singh"],
-["JfHJC0c00DI",1,"4:33",1,"Kaniya Ka Liha Chhath","Shilpi Raj"],
-["wAzliF-VsBM",0,"3:41",1,"Ghan Badari","Shilpi Raj"],
-["INp-NNoKWZ4",0,"3:54",1,"Chhath Ke Baratiya","Anu Dubey"],
-["lD8PUogYCko",0,"6:16",1,"The Sorrow Has Been Revealed","Kalpana Patowary"]
+["6e6Hp6R5SVU",3352,"5:53",0,"Uga Hai Suraj Dev","Anuradha Paudwal",1],
+["cXNQXPTxErg",2450,"5:28",0,"Jode Jode Falwa","Pawan Singh",1],
+["054aYEl728U",1747,"6:07",0,"Rovele Banjhiniya","Akshara Singh",0],
+["fCuHD3YBQKY",1732,"4:29",0,"Chhath Ghate Chali","Khesari Lal Yadav, Antra Singh Priyanka",0],
+["aLbXQ9VIxKI",1435,"5:40",0,"Chhath Mai Ke Baratiya","Khesari Lal Yadav",0],
+["Eyq7vfxu4iA",1392,"5:39",0,"Kaanch Hi Baans Ke Bahangiya","Anuradha Paudwal",1],
+["wXv2MyuVOZQ",1378,"6:35",0,"Chahi Nahi An Dhan Khajanwa","Arvind Akela Kallu, Nisha",0],
+["aAnoW6E3M1o",1271,"6:12",0,"Sawa Lakh Ke Saree Bheeje","Anu Dubey",0],
+["vrd1cfI3w_4",1178,"4:04",0,"Chhapra Mein Chhath Manayenge","Khesari Lal Yadav, Kajal Raghwani",1],
+["qUeuWi81PmM",1148,"8:37",0,"Kelwa Ke Paat Par (New Version)","T-Series Bhakti Sagar",1],
+["7R9tDvnAfMo",915,"6:09",0,"Kaanch Hi Baans Ke Bahangiya","Arvind Akela Kallu",0],
+["W-GPLC-Lt6Y",914,"5:40",0,"Kareli Chhathi Mai Ke Vrat","Kalpana Patowary",0],
+["lnj52n6k9-A",867,"4:03",0,"Ghare Ghare Hota Chhathi Mai Ke Baratiya","Amrapali Dubey",0],
+["YjX78e66enk",845,"4:00",0,"Patna Ke Ghat Neek Lagela","Khesari Lal Yadav",0],
+["6nPhZkZF4kk",823,"4:51",0,"Pahile Pahil Chhathi Maiya","Sharda Sinha",1],
+["KvOeeZB1_70",796,"3:55",0,"Mai Ghare Rowat Hoihe","Pawan Singh",0],
+["A25o207naYE",753,"4:26",0,"Jai Chhathi Maiya","Sonu Nigam, Pawan Singh, Khushboo Jain",1],
+["2LZ6XWjutJE",739,"7:31",0,"Patna Se Nimbua Mangaini","Anu Dubey",1],
+["6rmBHUl8veg",688,"7:00",0,"Maarbo Re Sugwa Dhanukh Se","Anuradha Paudwal",1],
+["cQ2eX4SrkNg",686,"9:56",0,"Pahile Pahile Baani Kaile Chhathi Maiya","Dinesh Lal Yadav, Amrapali Dubey",0],
+["JXnbpAY3igM",666,"4:41",0,"Making Ke Fera Aragh Ke Bera","Khesari Lal Yadav",0],
+["QNA_wINDlF8",598,"7:05",0,"Ho Deenanath (New Version)","Sharda Sinha",1],
+["FCRb4kjnRx4",584,"3:31",0,"Chhathi Maiya (The VVAAN)","Zee Music Company",0],
+["zaUyuCUTbyA",580,"6:54",0,"Paramparik Chhath Geet","Pawan Singh",0],
+["fOVGz9WFymU",577,"3:47",0,"Ho Deenanath","Sharda Sinha",0],
+["YVrZBmI9_ag",548,"6:26",0,"Kopi Kopi Boleli","Devi",0],
+["g4RBzgBJyP0",530,"4:37",0,"Koshiya Bharaye Lagal","Neelkamal Singh, Priyanka Singh",1],
+["6diXoexNQ58",530,"4:37",0,"Chhathi Mai Ke Ghatwa Pe Aajan Baajan","Pawan Singh",0],
+["BktbNj2TzPs",504,"6:37",0,"Kopi Kopi Boleli Chhathi Maiya","Anu Dubey",0],
+["WsvuH5QO23I",502,"8:47",0,"Kelwa Ke Paat Par","Devi",0],
+["G7bD1QSIxtM",456,"6:16",0,"Babua Je Rahte Mai","Pawan Singh",0],
+["4JdNlcumkoM",454,"3:14",0,"Piyari Pahir La","Pawan Singh, Shivani Singh",0],
+["8BfbY0vb7Ro",448,"5:45",0,"Aahe Aaditmal","Karina Pandey, Sovita Pandey",0],
+["IKAJdLAviYw",412,"3:54",0,"Ghunti Bhar Mor Dhoti Bheeje","Khesari Lal Yadav",0],
+["FGQ0SCK1AtE",398,"5:56",0,"Ugi He Dinanath","Kalpana Patowary",0],
+["-mpGoG0nWPo",397,"8:25",0,"Kelwa Ke Paat Par","Sharda Sinha",0],
+["SWCcS09lV7w",392,"7:30",0,"Orie Orie Madhu Chuve","Pawan Singh",0],
+["qPPhTg0WBMw",392,"5:23",0,"Kaanch Hi Baans Ke Bahangiya","Akshara Singh",0],
+["vDi-EyT3j7k",391,"5:17",0,"Jode Jode Supwa Tora Chadhaibo","Kalpana Patowary",1],
+["C7SM6nuEMIk",391,"5:16",0,"Kekra Khatir Bhukhelu Chhathwa","Arvind Akela Kallu",0],
+["oqi4EdCAGIM",383,"4:23",0,"Dhaniya Hamar Naya Baadi Ho","Pawan Singh",0],
+["d8YMWfwzitc",368,"4:07",0,"Nariyal","Khesari Lal Yadav, Shilpi Raj",1],
+["UnBc9RUmwKM",362,"4:09",0,"Chhath Kare Aai","Ritesh Pandey, Antra Singh",0],
+["iJUUVeY0l7M",345,"5:46",0,"Uthau Suruj Bhaile Bihaan","Sharda Sinha",1],
+["uWtMR3iQT-I",345,"4:27",0,"Kerwa Ke Patwa Pe Newta","Pawan Singh",0],
+["3n2bZlzbEJU",342,"4:41",0,"Ugi Suruj Dev","Pawan Singh",1],
+["MEnyozGodAU",317,"9:01",0,"Baanjhi Kewdwa Dhaile Thaadh","Sharda Sinha",0],
+["WlMzDuy1dy8",306,"6:17",0,"Bhail Araghiya Ke Ber","Arvind Akela Kallu, Nisha",0],
+["ZHLevU0WRx0",302,"4:10",0,"Kekar Ghar Ke Phulwa (Magahi)","Aashish Yadav",1],
+["VkYrntXiEX8",300,"4:47",0,"Patna Ke Ghatwa Par Baaje","T-Series Bhakti Sagar",0],
+["CZJYUCAO7lM",284,"5:27",0,"Jode Jode Falwa, Sitali Bayariya","Ansha Baby",0],
+["V4_ZiIi68L0",261,"4:50",0,"Yug Yug Rakhiha Suhag He Chhathi Maiya","Kalpana Patowary",0],
+["Pc3-aAmY47k",255,"3:49",0,"Hoihe Sahaiya","Pramod Premi Yadav",0],
+["k8Cmfe5HsF8",250,"3:40",0,"Army Lover Pa Kripa Kadi Chhathi Maiya","Tuntun Yadav, Shilpi Raj",0],
+["nDvexLjRxnI",240,"7:23",0,"Aadit Manaila","Anuradha Paudwal",1],
+["3riIFiPBkVU",235,"4:48",0,"Kare Mai Kathin Baratiya","Swati Mishra",1],
+["oQ7SYCXBiNc",235,"7:29",0,"Kahanva Tohar Naihara Ge Dhobin","T-Series Bhakti Sagar",1],
+["TZC1_Og2Pm0",234,"4:13",0,"Aso Chhath Karab Naihar Mein","Ankush Raja, Shilpi Raj",0],
+["nwxiVR4XfUc",227,"6:16",0,"Rauwa Se Ehe Hathjoriya","Pawan Singh",1],
+["JG-qK3vgI_o",225,"6:14",0,"Ugi He Dinanath (Chhath Special)","Kalpana Patowary",0],
+["JWJYJMKKziI",223,"5:58",0,"Aragh Mora Lei Lihin","Pink Music Bhojpuri",1],
+["_5URQZSgs9Y",222,"6:32",0,"Hey Ganga Maiya","Sharda Sinha",1],
+["38mTaX7LkgY",218,"3:42",0,"Chala Ganga Kinare","Khesari Lal Yadav",0],
+["OrlnX9zM5-k",213,"5:09",0,"Chhathi Maiya Bulaye","Vishal Mishra, Kaushal Kishore",0],
+["17JTrPbugtk",211,"5:14",0,"Ugi Hey Dinanath","Swati Mishra",1],
+["slbFmUj2l-M",205,"3:33",0,"Chhathi Maiya","Khesari Lal Yadav, Antra Singh",0],
+["GLpWmkQem4E",202,"4:08",0,"Chhath Kaili Kaniya","Arvind Akela Kallu",1],
+["27ql9apTxBU",197,"3:26",0,"Staron Ka Chhath","Arvind Akela Kallu, Antra Singh",0],
+["NkDiSj9c1EA",196,"6:05",0,"Dukhwa Mitayin Chhathi Maiya","Sharda Sinha",0],
+["agoWkuqL-0Y",193,"4:31",0,"Darshan Dekhai Dihi","Kalpana Patowary",1],
+["BZLSeOy5tyE",180,"3:36",0,"Bhukhlu Ta (Chhath Geet 2019)","Pramod Premi Yadav",0],
+["JbEEZl4N7vw",179,"6:01",0,"Sanghe Jaayem Ae Balam Ji","T-Series Bhakti Sagar",1],
+["wCzG6M-OwNE",170,"7:44",0,"Buxar Ke Pakki Re Sadakiya","Arvind Akela Kallu",1],
+["O4ARvvmllCA",165,"5:54",0,"Tohe Badka Bhaiya Ho","Sharda Sinha",0],
+["cfGCFbzoInI",165,"3:26",0,"Saloni Ke Mummy Kathua Jaibu","Arvind Akela Kallu",0],
+["OIWmozBpJVQ",161,"6:10",0,"Penhle Mahadev Piyariya","Pawan Singh",1],
+["QGGK7inM3gc",160,"5:39",0,"Chala Patna Ke Ghat","Pawan Singh",1],
+["PL2eykuoUbI",156,"6:30",0,"Akshara Singh Ka Chhath Geet","Akshara Singh",0],
+["76pIW6c13b0",154,"4:07",0,"Chhathi Maiya Deda Ego Lalna","Kalpana Patowary",1],
+["qX4uJFC2aUs",149,"5:00",0,"Naahin Jootal Phal Phool","T-Series Bhakti Sagar",0],
+["FPDKM5NidYM",141,"4:40",0,"Kawna Kalamwa Se Likhla Karamwa","Pawan Singh, Priyanka Singh",0],
+["pp0bO8uro64",141,"5:22",0,"Kahawa Paibo Sone Ke Katorwa","Anu Dubey",0],
+["bL6rp6eI_2k",140,"6:29",0,"Chhath Ke Baratiya","Sharda Sinha",0],
+["Hu5bAyznURA",139,"3:32",0,"Dhaniya Aawatani Chhath Kare","Arvind Akela Kallu",0],
+["2fFXDHk2TLs",132,"7:26",0,"Jode Jode Nariyal","Devi",0],
+["21CUPJCqx7g",132,"5:20",0,"Kath Ke Re Naiya","Kalpana Patowary",1],
+["6V2HibWFYzI",122,"6:46",0,"Chadhti Katikwa Chhath Maiya Aili","Anu Dubey",0],
+["apwPwIR9NOY",50,"3:14",1,"Chaar Hi Chakka Ke Motarwa","T-Series Hamaar Bhojpuri",1],
+["q5oxHPX0EBs",9,"4:07",1,"Dhaniya Mor Shahri Baadi","Khesari Lal Yadav, Pallavi Singh",1],
+["wc2rJFMgRjY",9,"3:46",1,"Jawan Ghat Sajaib Hum","Pramod Premi Yadav",0],
+["IoQZuhMCyYk",7,"4:54",1,"Hum Chhath Karab","Anu Dubey",0],
+["QMfyJaGAriU",6,"5:10",1,"Chhath Ke Baratiya","Akshara Singh, Sugam Singh",0],
+["XGpEtIHhsMc",5,"5:05",1,"Lagungi Beautiful Piya Ghat Pe","Shilpi Raj",1],
+["CMTJom5zZ3s",1,"3:01",1,"Hoi Je Balakwa","Pramod Premi Yadav",0],
+["PwrQIEp7VzU",1,"8:58",1,"Bitiya Hamar","Kalpana Patowary",0],
+["I1hVEa9e3zM",1,"5:17",1,"Ugi He Suruj Mal Naiyo Na Dole","Pawan Singh",1],
+["Z_S_zfNo1q0",1,"4:33",1,"Kaniya Ka Liha Chhath","Shilpi Raj",1],
+["wAzliF-VsBM",0,"3:41",1,"Ghan Badari","Shilpi Raj",0],
+["INp-NNoKWZ4",0,"3:54",1,"Chhath Ke Baratiya","Anu Dubey",0],
+["lD8PUogYCko",0,"6:16",1,"The Sorrow Has Been Revealed","Kalpana Patowary",0]
 ];
 console.assert(S.length===100&&new Set(S.map(s=>s[0])).size===100,"song list must be 100 unique videos");
 
@@ -249,7 +251,7 @@ const views=l=>l>=100?(l/100).toFixed(1)+" Cr":l>=1?l+" L":"under 1 L";
 const isFile=location.protocol==="file:";
 const now0=new Date(),md=String(now0.getMonth()+1).padStart(2,"0")+"-"+String(now0.getDate()).padStart(2,"0");
 const todayIdx=DAYS.findIndex(d=>d.md===md);
-let day=0,order=S.map((s,i)=>i),cur=0,player=null,ready=false,playing=false,shuffle=false,filter="all";
+let day=0,order=S.map((s,i)=>i),cur=0,player=null,ready=false,playing=false,shuffle=false,filter="song";
 const fits=i=>DAYS[day].rx.test(S[i][4]);
 
 /* ---------- days ---------- */
@@ -259,18 +261,18 @@ function setDay(d){day=d;const D=DAYS[d];
   document.querySelectorAll(".day").forEach((b,i)=>b.setAttribute("aria-pressed",i===d));
   $("cap").innerHTML=`<b>${D.h}</b>${D.line}`;
   const all=S.map((s,i)=>i);order=all.filter(fits).concat(all.filter(i=>!fits(i)));
-  $("fitline").textContent=`${all.filter(fits).length} songs that fit ${D.k} play first.`;
-  render();if(!playing)load(order[0],false);}
+  $("fitline").textContent=`Songs that fit ${D.k} play first. "Song only" keeps to uploads with no story scenes.`;
+  render();if(!playing)load(shown()[0]??order[0],false);}
 
 /* ---------- song panel ---------- */
 const list=$("list");
 function shown(){const q=$("q").value.trim().toLowerCase();
   return order.filter(i=>{const s=S[i];
-    return (filter==="all"||(filter==="new"&&s[3])||(filter==="fit"&&fits(i)))&&(!q||(s[4]+" "+s[5]).toLowerCase().includes(q));});}
+    return (filter==="all"||(filter==="song"&&s[6])||(filter==="new"&&s[3])||(filter==="fit"&&fits(i)))&&(!q||(s[4]+" "+s[5]).toLowerCase().includes(q));});}
 function render(){
   list.innerHTML=shown().map(i=>{const s=S[i];return `<li data-i="${i}"${i===cur?' class="on"':''}><a href="https://www.youtube.com/watch?v=${s[0]}" target="_blank" rel="noopener">
   <div class="rk"><span>${i+1}</span><div class="eq"><i></i><i></i><i></i></div></div>
-  <div><div class="ti">${s[4]}${s[3]?'<span class="tag new">NEW</span>':''}${fits(i)?`<span class="tag fit">${DAYS[day].k}</span>`:''}</div><div class="ar">${s[5]}</div></div>
+  <div><div class="ti">${s[4]}${s[3]?'<span class="tag new">NEW</span>':''}${fits(i)?`<span class="tag fit">${DAYS[day].k}</span>`:''}${s[6]?'':'<span class="tag vid">VIDEO VERSION</span>'}</div><div class="ar">${s[5]}</div></div>
   <div class="meta"><b>${views(s[1])}</b>${s[2]}</div></a></li>`}).join("")||'<li class="empty">No song matches. Try a shorter search.</li>';}
 list.addEventListener("click",e=>{const li=e.target.closest("li[data-i]");if(!li||isFile)return;e.preventDefault();load(+li.dataset.i,true);});
 $("q").addEventListener("input",render);
