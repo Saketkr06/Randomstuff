@@ -324,7 +324,7 @@ const cv=$("cv"),g=cv.getContext("2d"),still=matchMedia("(prefers-reduced-motion
 const dot=(x,y,r)=>{g.beginPath();g.arc(x,y,r,0,7);g.fill();};
 const oval=(x,y,a,b)=>{g.beginPath();g.ellipse(x,y,a,b,0,0,7);g.fill();};
 
-const CL=(()=>{const r=rng("clouds");return Array.from({length:5},()=>({x:r(),y:.1+r()*.3,s:.7+r()*.8,v:.003+r()*.004}));})();
+const CL=(()=>{const r=rng("clouds");return Array.from({length:5},(_,i)=>({x:(i+r())/5,y:.24+r()*.3,s:.6+r()*.6,v:.003+r()*.004}));})();
 const SP=(()=>{const r=rng("sparkle");return Array.from({length:60},()=>[r(),r(),r()*6.3]);})();
 const hash=n=>{const x=Math.sin(n*127.1)*43758.5453;return x-Math.floor(x);};
 // a devotee standing in the river. dip 0..1 takes them under water; soop = holding the offering towards the sun
@@ -374,7 +374,7 @@ function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(pla
     gr=g.createRadialGradient(cx,cy,0,cx,cy,R);gr.addColorStop(0,"#fff8de");gr.addColorStop(.6,`hsl(${hue} 96% ${d===0?72:58}%)`);gr.addColorStop(1,`hsl(${hue-8} 95% ${d===0?62:48}%)`);
     g.fillStyle=gr;dot(cx,cy,R);g.restore();}
   // drifting clouds
-  g.fillStyle=d===0?"rgba(255,255,255,.85)":`hsl(${hue} 70% 80% / ${d===1?.1:.2})`;
+  g.fillStyle=d===0?"rgba(255,255,255,.85)":`hsl(${hue} 70% 80% / ${d===1?.05:.1})`;
   for(const c of CL){const x=((c.x+T*c.v)%1.3-.15)*W,y=c.y*hz,q=u*4*c.s;oval(x,y,q*3,q);oval(x-q*2,y+q*.3,q*1.8,q*.8);oval(x+q*2,y+q*.2,q*2,q*.9);oval(x+q*.5,y-q*.6,q*1.6,q*.9);}
   // crackers over the ghat on the two arghya days
   if(d>=2)for(let k=0;k<3;k++){const ph=T/3.2+k/3,n=Math.floor(ph),t=ph-n,fx=W*(.15+hash(n*3+k)*.7),fy=hz*(.2+hash(n*7+k)*.35),fr=u*(6+hash(n+k)*6)*(1-Math.pow(1-t,3));
