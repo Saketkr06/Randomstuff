@@ -346,8 +346,9 @@ function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(pla
   // sun or moon
   const cx=W*s.sunX;let cy,R;
   if(d===1){R=u*5.5;cy=H*.2;
-    g.save();g.beginPath();g.rect(0,0,W,H);g.arc(cx+R*.5,cy-R*.15,R*.9,0,7,true);g.clip("evenodd");
-    g.fillStyle="hsl(50 60% 88% / .18)";dot(cx,cy,R*1.9+beat*4);g.fillStyle="#f5ecc8";dot(cx,cy,R);g.restore();}
+    g.fillStyle="hsl(50 60% 88% / .12)";dot(cx,cy,R*2+beat*4);
+    g.save();g.beginPath();g.rect(0,0,W,H);g.moveTo(cx+R*1.4,cy-R*.15);g.arc(cx+R*.5,cy-R*.15,R*.9,0,7,true);g.clip("evenodd");
+    g.fillStyle="#f5ecc8";dot(cx,cy,R);g.restore();}
   else{R=u*(d===0?8:13)*(1+beat*.05);cy=d===0?hz-H*.34:hz+R*.7-a*R*2.5;
     g.save();g.beginPath();g.rect(0,0,W,hz);g.clip();
     g.translate(cx,cy);g.rotate(T*s.spin);g.fillStyle=`hsl(${hue+12} 100% 72% / ${.10+beat*.12})`;g.strokeStyle=g.fillStyle;
