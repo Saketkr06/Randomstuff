@@ -513,13 +513,16 @@ function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(pla
     if(t<.2){const w=t/.2,e=1-(1-w)*(1-w);for(let j=0;j<8;j++){const ww=Math.max(0,e-j*.03);g.fillStyle=`hsl(${38-j*4} 100% ${82-j*6}% / ${1-j/9})`;dot(x0+(x1-x0)*ww,y0+(y1-y0)*ww,2.6-j*.25);}}
     else if(t<.8)fw(x1,y1,(t-.2)/.6,k+seed,H*(.09+r*.07));};
   rocket(rkx,rky,5.3,0,1);rocket(rkx,rky,7.1,2.5,2);rocket(W*.14,H*.62,9,4,3);rocket(W*.3,H*.7,11,1,4);rocket(W*.2,H*.63,13,7,5);
-  // every so often one rocket bursts into the greeting: sparks fly out and settle into the letters, glitter, then fall
-  if(txtPts){const P=16,c=(T+3)/P,t=c-Math.floor(c),tx=W*.5,ty=H*.3,Fw=Math.min(W*.6,780);
-    if(t<.12){const w=t/.12,e=1-(1-w)*(1-w);for(let j=0;j<8;j++){const ww=Math.max(0,e-j*.03);g.fillStyle=`hsl(${38-j*4} 100% ${82-j*6}% / ${1-j/9})`;dot(rkx+(tx-rkx)*ww,rky+(ty-rky)*ww,2.8-j*.25);}}
-    else if(t<.82){const b=(t-.12)/.7,e=Math.min(1,b/.22),ee=1-Math.pow(1-e,3),fade=b<.7?1:1-(b-.7)/.3,fall=b>.7?Math.pow((b-.7)/.3,2)*H*.12:0;
-      if(b<.3)fw(tx,ty,b/.3,21,Fw*.3);
-      for(let i=0;i<txtPts.length;i++){const q=txtPts[i],x=tx+q[0]*Fw*ee,y=ty+q[1]*Fw*ee+fall*(.5+hash(i));
-        g.fillStyle=`hsl(${38+hash(i)*22} 100% ${68+hash(i+7)*22}% / ${fade*(.6+.4*Math.sin(T*7+i))})`;dot(x,y,u*.3);}}}
+  // a 20-shot cake on the right bank fires 20 shots one after another; the last shot bursts into the greeting, which stays about 2 seconds
+  if(txtPts){const P=16,k=Math.floor(T/P),c=T-k*P,cx0=W*.695,cy0=gyR-q0*5.5,tx=W*.5,ty=H*.3,Fw=Math.min(W*.6,780);
+    for(let i=0;i<20;i++){const a=c-i*.28;if(a<0||a>2.4)continue;
+      const sd=i+k*20,x1=i===19?tx:W*(.25+hash(sd*1.7)*.6),y1=i===19?ty:H*(.1+hash(sd*2.3)*.28);
+      if(a<.12){g.fillStyle="rgba(255,230,150,.9)";dot(cx0,cy0,q0*(4-a*20));}
+      if(a<.5){const w=a/.5,e=1-(1-w)*(1-w);for(let j=0;j<7;j++){const ww=Math.max(0,e-j*.035);g.fillStyle=`hsl(${38-j*4} 100% ${82-j*6}% / ${1-j/8})`;dot(cx0+(x1-cx0)*ww,cy0+(y1-cy0)*ww,2.6-j*.25);}}
+      else if(i<19){if(a<1.5)fw(x1,y1,(a-.5)/1,sd,H*(.06+hash(sd)*.04));}
+      else{const b=a-.5;if(b<.8)fw(tx,ty,b/.8,21,Fw*.3);
+        const e=1-Math.pow(1-Math.min(1,b/.35),3),fade=b<1.35?1:Math.max(0,1-(b-1.35)/.45),fall=b>1.35?Math.pow((b-1.35)/.45,2)*H*.1:0;
+        if(b<1.8)for(let n=0;n<txtPts.length;n++){const q=txtPts[n];g.fillStyle=`hsl(${38+hash(n)*22} 100% ${68+hash(n+7)*22}% / ${fade*(.6+.4*Math.sin(T*9+n))})`;dot(tx+q[0]*Fw*e,ty+q[1]*Fw*e+fall*(.5+hash(n)),u*.3);}}}}
   // ghat steps on the left bank
   g.fillStyle=sil;for(let i=0;i<4;i++)g.fillRect(0,H*(.63+i*.05),W*(.22+i*.09),H);
   const gx=W*.11,gy=H*.63;
@@ -571,12 +574,17 @@ function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(pla
   g.fillStyle=sil;g.beginPath();g.moveTo(W*.58,H);g.quadraticCurveTo(W*.64,gy,W*.69,gy);g.lineTo(W,gy-H*.01);g.lineTo(W,H);g.fill();
   g.strokeStyle="#8a6a3a";g.lineWidth=2;g.beginPath();g.moveTo(rkx-q*1.2,gy);g.lineTo(rkx,rky);g.stroke();g.fillStyle="#e8492d";dot(rkx,rky,2);
   g.fillStyle=`rgba(255,220,120,${.5+.5*Math.sin(T*30)})`;dot(rkx,rky-2,2.2);
-  walker(W*.76,gy,q*.65,0,"sparkler",1,pc);walker(W*.825,gy-jmp,q*.6,0,"",-1,pc);
-  const ax=W*.725;g.fillStyle="#7a3b1a";g.beginPath();g.moveTo(ax-1.4*q,gy);g.lineTo(ax-q,gy-3.5*q);g.lineTo(ax+q,gy-3.5*q);g.lineTo(ax+1.4*q,gy);g.fill();   // anar fountain
+  walker(W*.772,gy,q*.65,0,"sparkler",1,pc);walker(W*.825,gy-jmp,q*.6,0,"",-1,pc);
+  const ax=W*.748;g.fillStyle="#7a3b1a";g.beginPath();g.moveTo(ax-1.4*q,gy);g.lineTo(ax-q,gy-3.5*q);g.lineTo(ax+q,gy-3.5*q);g.lineTo(ax+1.4*q,gy);g.fill();   // anar fountain
   for(let i=0;i<34;i++){const t=(T*1.3+hash(i))%1,an=(hash(i+9)-.5),v=u*14*(.6+hash(i+4)*.5);g.fillStyle=`hsl(${35+hash(i)*20} 100% ${65+t*20}% / ${1-t})`;dot(ax+Math.sin(an)*v*t,gy-3.5*q-Math.cos(an)*v*t+u*14*t*t*.9,1.5);}
-  const cxs=W*.695,cys=gy-1.3*q;                                                                                  // chakri spinning
+  const cxs=W*.722,cys=gy-1.3*q;                                                                                  // chakri spinning
   for(let k=0;k<10;k++){const an=T*12+k*.63,rr=(2+k*.45)*q;g.fillStyle=`hsl(${40+k*3} 100% 70% / ${1-k/11})`;dot(cxs+Math.cos(an)*rr,cys+Math.sin(an)*rr*.45,1.6);}
-  g.fillStyle="#fff";dot(cxs,cys,1.8);}                                                                          // the ghat dog
+  g.fillStyle="#fff";dot(cxs,cys,1.8);
+  const cx0=W*.695;g.fillStyle="#7a2418";g.fillRect(cx0-3.2*q,gy-5.5*q,6.4*q,5.5*q);g.fillStyle="#ffd21f";g.fillRect(cx0-3.2*q,gy-3.7*q,6.4*q,.9*q);g.fillStyle="#2a9d5c";g.fillRect(cx0-3.2*q,gy-1.9*q,6.4*q,.9*q);   // the 20-shot cake
+  const lx=W*.865,top=H*.46,L=T%8;g.strokeStyle="#7a3b1a";g.lineWidth=1.3;g.beginPath();g.moveTo(W*.9,top);g.lineTo(lx,top);g.lineTo(lx,gy);g.stroke();   // a string of firecrackers, lit from the bottom
+  for(let j=0;j<12;j++){const yy=gy-(gy-top)*(j+.5)/12,a=L-j*.16;
+    if(a<0){g.fillStyle="#c0392b";g.fillRect(lx-1.6,yy-5,3.2,10);}
+    else if(a<.35){const f=1-a/.35;g.fillStyle=`rgba(255,240,180,${f})`;dot(lx,yy,q*(1.5+4*(1-f)));g.fillStyle=`rgba(255,160,60,${f})`;for(let n=0;n<5;n++){const an=n*1.26+j;dot(lx+Math.cos(an)*q*5*(1-f),yy+Math.sin(an)*q*5*(1-f),1.4);}}}}                                                                          // the ghat dog
   if(d===0||d===3){const kx0=W*.38,ky0=stepY(kx0,W,H);walker(kx0,ky0,q*.7,0,"",1,pc);                          // a child flying a kite
     kite(kx0+2*q,ky0-9*q,W*.3+Math.sin(T*.6)*u*3,H*.2+Math.sin(T*.9)*u*2,u*.45);}
   if(d===0){for(let k=0;k<2;k++){const f=(T*.03+k*.16)%1,x=f*.46*W+W*.02;walker(x,stepY(x,W,H),q*.6,T*9+k,"",1,pc);}}   // two children run along the steps
