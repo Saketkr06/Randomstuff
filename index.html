@@ -51,8 +51,7 @@ body.idle .stay{opacity:1}
 .stay b{display:block;font:400 clamp(2.2rem,5.5vw,3.8rem)/1.1 var(--display);color:#fff}
 .stay strong{display:block;font-weight:800;font-size:clamp(1.15rem,2.4vw,1.7rem);color:#fff}
 .stay ul{list-style:none;margin:10px 0 0;padding:0;font-weight:600;font-size:clamp(.95rem,1.8vw,1.25rem);color:rgba(255,255,255,.88)}
-.stay .song{opacity:0;transition:opacity .8s;text-align:center;font:400 clamp(1.05rem,2.4vw,1.6rem)/1.2 var(--display);color:rgba(255,255,255,.62);text-wrap:balance}
-.stay .song.on{opacity:1}
+.stay .song{text-align:center;font:400 clamp(1.05rem,2.4vw,1.6rem)/1.2 var(--display);color:rgba(255,255,255,.62);text-wrap:balance}
 .stay .song small{display:block;font:600 clamp(.8rem,1.3vw,.95rem) var(--body);color:rgba(255,255,255,.6)}
 .stay :is(b,strong,ul,li,.song,small,span){color:#ffd21f;font-weight:800;-webkit-text-stroke:.14em #2a1200;paint-order:stroke fill;text-shadow:0 3px 10px rgba(0,0,0,.6)}
 .stay ul{-webkit-text-stroke:.16em #2a1200}
@@ -330,9 +329,7 @@ function step(d){const ids=shown().length?shown():order;let p=ids.indexOf(cur);
 $("next").onclick=()=>step(1);$("prev").onclick=()=>step(-1);
 $("shuf").onclick=()=>{shuffle=!shuffle;$("shuf").setAttribute("aria-pressed",shuffle);};
 $("play").onclick=()=>{if(isFile)return window.open("https://www.youtube.com/watch?v="+S[cur][0],"_blank","noopener");if(ready)playing?player.pauseVideo():player.playVideo();};
-let titleFor=-1,titleTimer=0;   // the song name shows on the clean screen for 10 seconds when a song starts
-function setPlaying(p){wake();playing=p;
-  if(p&&titleFor!==cur){titleFor=cur;const el=document.querySelector('.stay .song');el.classList.add('on');clearTimeout(titleTimer);titleTimer=setTimeout(()=>el.classList.remove('on'),10000);}document.body.classList.toggle("playing",p);$("play").textContent=p?"Pause":"Play";}
+function setPlaying(p){wake();playing=p;document.body.classList.toggle("playing",p);$("play").textContent=p?"Pause":"Play";}
 window.onYouTubeIframeAPIReady=()=>{player=new YT.Player("player",{videoId:S[cur][0],playerVars:{playsinline:1,rel:0},events:{
   onReady:()=>{ready=true;},
   onStateChange:e=>{setPlaying(e.data===1);if(e.data===0)step(1);},
