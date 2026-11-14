@@ -46,16 +46,19 @@ h1{font:400 clamp(1.5rem,4.5vw,2.2rem)/1.1 var(--display);margin:0;color:var(--m
 .cap b{font:400 1.25rem var(--display);color:var(--marigold);margin-right:8px}
 .cap strong{font-weight:800;margin-right:8px}
 /* what stays on the clean screen: the day in bold, the days still to come, and the song name in see-through white */
-.stay{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .6s;display:flex;flex-direction:column;justify-content:space-between;padding:22px 24px 30px;text-shadow:0 2px 10px rgba(0,0,0,.55)}
+.stay{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .6s;display:flex;flex-direction:column;justify-content:space-between;padding:22px 24px 64px;text-shadow:0 2px 10px rgba(0,0,0,.55)}
 body.idle .stay{opacity:1}
 .stay b{display:block;font:400 clamp(2.2rem,5.5vw,3.8rem)/1.1 var(--display);color:#fff}
 .stay strong{display:block;font-weight:800;font-size:clamp(1.15rem,2.4vw,1.7rem);color:#fff}
 .stay ul{list-style:none;margin:10px 0 0;padding:0;font-weight:600;font-size:clamp(.95rem,1.8vw,1.25rem);color:rgba(255,255,255,.88)}
 .stay .song{text-align:center;font:400 clamp(1.7rem,5vw,3.4rem)/1.2 var(--display);color:rgba(255,255,255,.62);text-wrap:balance}
 .stay .song small{display:block;font:600 clamp(.95rem,1.8vw,1.25rem) var(--body);color:rgba(255,255,255,.6)}
+.stay :is(b,strong,ul,li,.song,small,span){color:#ffd21f;font-weight:800;-webkit-text-stroke:.14em #2a1200;paint-order:stroke fill;text-shadow:0 3px 10px rgba(0,0,0,.6)}
+.stay ul{-webkit-text-stroke:.16em #2a1200}
+.credit{position:fixed;z-index:2;left:50%;bottom:10px;transform:translateX(-50%);font:800 .95rem/1 var(--body);letter-spacing:.05em;color:#ffd21f;background:rgba(30,12,0,.7);border:2px solid #ffd21f;border-radius:999px;padding:7px 18px;white-space:nowrap;pointer-events:none;box-shadow:0 0 14px rgba(255,210,31,.35)}
 .note{background:var(--ghat);border-left:4px solid var(--marigold);padding:8px 12px;border-radius:6px;margin:0;max-width:70ch}
 .note[hidden]{display:none}
-.bottom{padding:56px 16px 16px;background:linear-gradient(transparent,rgba(10,5,20,.9) 50%);display:grid;gap:10px}
+.bottom{padding:56px 16px 52px;background:linear-gradient(transparent,rgba(10,5,20,.9) 50%);display:grid;gap:10px}
 .now b{display:block;font:400 clamp(1.3rem,4vw,1.9rem)/1.2 var(--display);text-wrap:balance}
 .now span{color:var(--smoke)}
 .bar{display:flex;gap:12px;align-items:center;max-width:760px}
@@ -106,6 +109,7 @@ body:not(.playing) .eq i{animation-play-state:paused}
 <div class="video"><div id="player"></div></div>
 <canvas id="cv" aria-hidden="true"></canvas>
 
+<div class="credit">Built by Saket</div>
 <div class="stay" aria-hidden="true"><div id="sday"></div><div class="song"><span id="st"></span><small id="sa"></small></div></div>
 
 <div class="ui">
@@ -378,6 +382,9 @@ function walker(x,y,q,ph,carry,dir,col){
     if(carry==="daura"){g.fillStyle="#7a5527";g.beginPath();g.ellipse(x,y-16.2*q,4.2*q,1.8*q,0,0,Math.PI);g.fill();g.fillRect(x-4.2*q,y-16.7*q,8.4*q,.6*q);
       g.fillStyle="#f29a1f";dot(x-1.6*q,y-17.4*q,1.1*q);g.fillStyle="#e9d24a";dot(x+1.4*q,y-17.4*q,1*q);g.fillStyle="#7fae3c";dot(x,y-17.9*q,1.1*q);}
     else{g.fillStyle="#d9992e";dot(x,y-17.2*q,2.1*q);g.fillRect(x-1.1*q,y-20*q,2.2*q,1*q);}}
+  else if(carry==="conch"){g.lineWidth=1.1*q;const mx=x+dir*1.7*q,my=y-14.6*q;g.beginPath();g.moveTo(x+dir*1.2*q,y-11*q);g.lineTo(mx,my+1.2*q);g.stroke();
+    g.fillStyle="#f1e6cf";g.beginPath();g.moveTo(mx,my);g.lineTo(mx+dir*6*q,my-2.6*q);g.lineTo(mx+dir*6*q,my+1.8*q);g.fill();
+    if(playing){g.strokeStyle="rgba(255,210,31,.8)";g.lineWidth=1.2;for(let k=0;k<3;k++){const t=(T*1.4+k/3)%1;g.globalAlpha=1-t;g.beginPath();g.arc(mx+dir*6*q,my-.4*q,(2+t*10)*q,dir>0?-.9:Math.PI-.9,dir>0?.9:Math.PI+.9);g.stroke();}g.globalAlpha=1;}}
   else if(carry==="sparkler"){const hx=x+dir*4.5*q,hy=y-13*q+Math.sin(ph*.5)*q,n=Math.floor(T*14);g.lineWidth=1*q;g.beginPath();g.moveTo(x+dir*1.2*q,y-11*q);g.lineTo(hx,hy);g.stroke();
     for(let k=0;k<9;k++){const an=hash(k+n)*6.283,rr=(1+hash(k*3+n)*3.5)*q;g.fillStyle=`hsl(${45+hash(k)*15} 100% 75%)`;dot(hx+Math.cos(an)*rr,hy+Math.sin(an)*rr,1.2);}
     g.fillStyle="#fff";dot(hx,hy,1.7);}
@@ -391,6 +398,22 @@ function sitter(x,y,q,act,dir,col){
   if(act==="fan"){g.fillStyle="#c9a15a";oval(hx+dir*2*q,hy,2.2*q,2.8*q);}
   if(act==="roti"){g.fillStyle="#2a1a10";oval(x+dir*4.6*q,y-.9*q,3.2*q,.8*q);g.fillStyle="#e8d2a0";oval(x+dir*4.6*q,y-1.5*q,2.3*q,.55*q);g.strokeStyle="#a8703a";g.lineWidth=.8*q;g.beginPath();g.moveTo(hx-1.7*q,hy);g.lineTo(hx+1.7*q,hy);g.stroke();}
   if(act==="stick"){g.lineWidth=.6*q;g.beginPath();g.moveTo(hx,hy);g.lineTo(hx+dir*7*q,hy-3*q+s1*3*q);g.stroke();}}
+// a street dog trotting along the steps
+function dog(x,y,q,dir,ph,col){const sw=Math.sin(ph)*1.6*q;g.fillStyle=col;g.strokeStyle=col;g.lineCap="round";g.lineWidth=1*q;
+  g.beginPath();for(const [lx,s2] of [[-2.4,1],[-1.6,-1],[2,-1],[2.8,1]]){g.moveTo(x+dir*lx*q,y-3.2*q);g.lineTo(x+dir*lx*q+sw*s2,y);}g.stroke();
+  oval(x,y-4.4*q,3.6*q,1.7*q);dot(x+dir*4.3*q,y-6.4*q,1.5*q);oval(x+dir*5.8*q,y-6*q,1.1*q,.7*q);
+  g.beginPath();g.moveTo(x+dir*3.6*q,y-7.6*q);g.lineTo(x+dir*3.1*q,y-9*q);g.lineTo(x+dir*4.5*q,y-8*q);g.fill();
+  g.beginPath();g.moveTo(x-dir*3.4*q,y-5.2*q);g.lineTo(x-dir*5.6*q,y-7.4*q+Math.sin(T*14)*q);g.stroke();}
+// a dhol player sitting on a step, hitting on the beat
+function dholi(x,y,q,dir,col,beat){g.fillStyle=col;g.strokeStyle=col;g.lineCap="round";oval(x,y-2.6*q,3.6*q,2.8*q);oval(x,y-7*q,2.1*q,3.2*q);dot(x,y-11.2*q,1.6*q);
+  const bx=x+dir*4.6*q,by=y-3.4*q;oval(bx,by,4.4*q,2.2*q);g.fillStyle="#d9992e";oval(bx+dir*4.2*q,by,.5*q,2*q);g.fillStyle=col;
+  g.lineWidth=1.1*q;const up=(1-beat)*4*q;for(const o of [-1,1]){const tx=bx+o*1.6*q,ty=by-2.2*q-up*(o>0?1:.6);g.beginPath();g.moveTo(x+dir*1.2*q,y-8.4*q);g.lineTo(tx,ty);g.stroke();}
+  if(beat>.6){g.strokeStyle=`rgba(255,210,31,${beat-.4})`;g.lineWidth=1.2;g.beginPath();g.arc(bx,by,(3+(1-beat)*14)*q,0,7);g.stroke();}}
+// a kite on a string, held by someone on the steps
+function kite(hx,hy,kx,ky,q){g.strokeStyle="rgba(255,255,255,.55)";g.lineWidth=1;g.beginPath();g.moveTo(hx,hy);g.quadraticCurveTo((hx+kx)/2,Math.max(hy,ky)+q*8,kx,ky);g.stroke();
+  g.save();g.translate(kx,ky);g.rotate(Math.sin(T*.9)*.18);g.fillStyle="#e8492d";g.beginPath();g.moveTo(0,-6*q);g.lineTo(4*q,0);g.lineTo(0,8*q);g.lineTo(-4*q,0);g.fill();
+  g.fillStyle="#ffd21f";g.beginPath();g.moveTo(0,-6*q);g.lineTo(4*q,0);g.lineTo(0,0);g.fill();
+  g.strokeStyle="#ffd21f";g.lineWidth=1.3;g.beginPath();g.moveTo(0,8*q);for(let k=1;k<=6;k++)g.lineTo(Math.sin(T*5+k)*2*q,8*q+k*2.4*q);g.stroke();g.restore();}
 function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(playing?1:.15);
   const dpr=Math.min(2,devicePixelRatio||1),W=innerWidth,H=innerHeight;
   if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);}
@@ -505,6 +528,12 @@ function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(pla
     for(let k=4;k>=0;k--){const x=(((T*.014-k*.085)%1+1)%1)*.54*W-.03*W;walker(x,stepY(x,W,H),k===4?q*.6:q,T*5+k*1.7,k===4?"sparkler":"daura",1,pc);}}
   else{ // families stand on the steps with folded hands as the sun comes up
     [.25,.29,.345,.435].forEach((f,k)=>walker(W*f,sy(f),q*(k===1?.9:1),0,"",1,pc));walker(W*.39,sy(.39),q*.6,T*5,"sparkler",1,pc);}}
+  {const q=u*.85,pc=d===1?"#3b2218":sil,dx=W*(.03+.44*(.5-.5*Math.cos(T*.12))),dd=Math.sin(T*.12)>=0?1:-1;
+  dog(dx,stepY(dx,W,H),q,dd,T*9,pc);                                                                          // the ghat dog
+  if(d===0||d===3){const kx0=W*.38,ky0=stepY(kx0,W,H);walker(kx0,ky0,q*.7,0,"",1,pc);                          // a child flying a kite
+    kite(kx0+2*q,ky0-9*q,W*.3+Math.sin(T*.6)*u*3,H*.2+Math.sin(T*.9)*u*2,u*.45);}
+  if(d===0){for(let k=0;k<2;k++){const f=(T*.03+k*.16)%1,x=f*.46*W+W*.02;walker(x,stepY(x,W,H),q*.6,T*9+k,"",1,pc);}}   // two children run along the steps
+  if(d===2||d===3){dholi(W*.2,stepY(W*.2,W,H),q,1,pc,beat);walker(W*.04,stepY(W*.04,W,H),q,0,"conch",1,pc);}}                   // dhol and shankh
   if(d===1)for(let i=0;i<12;i++){g.fillStyle=`hsl(70 100% 70% / ${.4+.4*Math.sin(T*3+i)})`;dot(W*(.2+hash(i)*.7)+Math.sin(T*.5+i)*u*4,H*(.36+hash(i+20)*.2)+Math.cos(T*.4+i*2)*u*3,1.6);}   // fireflies
   // loudspeaker on a bamboo pole: the real sound system of every ghat
   const px=W*.9,py=H*.34,pk=1+beat*.1;
