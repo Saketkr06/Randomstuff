@@ -55,6 +55,16 @@ body.idle .stay{opacity:1}
 .stay .song small{display:block;font:600 clamp(.95rem,1.8vw,1.25rem) var(--body);color:rgba(255,255,255,.6)}
 .stay :is(b,strong,ul,li,.song,small,span){color:#ffd21f;font-weight:800;-webkit-text-stroke:.14em #2a1200;paint-order:stroke fill;text-shadow:0 3px 10px rgba(0,0,0,.6)}
 .stay ul{-webkit-text-stroke:.16em #2a1200}
+.up{position:absolute;left:24px;bottom:18px;display:grid;gap:6px}
+.up .lbl{font:800 .8rem/1 var(--body);letter-spacing:.16em;text-transform:uppercase;-webkit-text-stroke:.1em #2a1200}
+.up .row{display:flex;gap:10px;align-items:flex-end}
+.cal{width:clamp(100px,12vw,132px);border:2px solid #ffd21f;border-radius:12px;background:rgba(30,12,0,.66);overflow:hidden;text-align:center;box-shadow:0 0 12px rgba(255,210,31,.25)}
+.cal i{display:block;background:#ffd21f;color:#2a1200;font:800 .72rem/1 var(--body);font-style:normal;letter-spacing:.14em;padding:4px 0}
+.cal em{display:block;font:400 clamp(1.8rem,3.6vw,2.6rem)/1.1 var(--display);font-style:normal;color:#ffd21f;-webkit-text-stroke:.1em #2a1200;paint-order:stroke fill}
+.cal small,.cal span{display:block;-webkit-text-stroke:.08em #2a1200}
+.cal small{font:800 .75rem/1.1 var(--body)}
+.cal span{font:800 .82rem/1.2 var(--body);padding:2px 6px 8px}
+@media(max-width:700px){.stay .song{margin-bottom:96px}.up{left:14px}}
 .stay .song small{color:#ffd21f;font-weight:800}
 .credit{position:fixed;z-index:3;right:12px;bottom:8px;font:800 .72rem/1 var(--body);letter-spacing:.05em;color:#ffd21f;background:rgba(30,12,0,.7);border:1.5px solid #ffd21f;border-radius:999px;padding:4px 11px;white-space:nowrap;pointer-events:none;box-shadow:0 0 10px rgba(255,210,31,.3)}
 .note{background:var(--ghat);border-left:4px solid var(--marigold);padding:8px 12px;border-radius:6px;margin:0;max-width:70ch}
@@ -111,7 +121,7 @@ body:not(.playing) .eq i{animation-play-state:paused}
 <canvas id="cv" aria-hidden="true"></canvas>
 
 <div class="credit">Built by Saket</div>
-<div class="stay" aria-hidden="true"><div id="sday"></div><div class="song"><span id="st"></span><small id="sa"></small></div></div>
+<div class="stay" aria-hidden="true"><div id="sday"></div><div class="up" id="sup"></div><div class="song"><span id="st"></span><small id="sa"></small></div></div>
 
 <div class="ui">
   <header class="top">
@@ -282,7 +292,9 @@ function setDay(d){day=d;const D=DAYS[d];
   document.querySelectorAll(".day").forEach((b,i)=>b.setAttribute("aria-pressed",i===d));
   const when=(i)=>(i===todayIdx?"Today, ":i===todayIdx+1&&todayIdx>=0?"Tomorrow, ":"")+DAYS[i].date;
   $("cap").innerHTML=`<b>${D.h}</b><strong>${D.k} · ${when(d)}</strong>${D.line}`;
-  $("sday").innerHTML=`<b>${D.h}</b><strong>${D.k} · ${when(d)}</strong><ul>${DAYS.map((x,i)=>i>d?`<li>${x.k} · ${when(i)}</li>`:"").join("")}</ul>`;
+  $("sday").innerHTML=`<b>${D.h}</b><strong>${D.k} · ${when(d)}</strong>`;
+  const up=DAYS.map((x,i)=>i>d?`<div class="cal"><i>${["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][+x.md.slice(0,2)-1]}</i><em>${+x.md.slice(3)}</em><small>${x.date.split(" ")[0]}</small><span>${x.k}</span></div>`:"").join("");   // upcoming days as small calendar tiles
+  $("sup").innerHTML=up?`<span class="lbl">Coming up</span><div class="row">${up}</div>`:"";
   const all=S.map((s,i)=>i);order=all.filter(fits).concat(all.filter(i=>!fits(i)));
   $("fitline").textContent=`Songs that fit ${D.k} play first. "Song only" keeps to uploads with no story scenes.`;
   render();if(!playing)load(shown()[0]??order[0],false);}
