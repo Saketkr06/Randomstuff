@@ -415,6 +415,11 @@ function kite(hx,hy,kx,ky,q){g.strokeStyle="rgba(255,255,255,.55)";g.lineWidth=1
   g.save();g.translate(kx,ky);g.rotate(Math.sin(T*.9)*.18);g.fillStyle="#e8492d";g.beginPath();g.moveTo(0,-6*q);g.lineTo(4*q,0);g.lineTo(0,8*q);g.lineTo(-4*q,0);g.fill();
   g.fillStyle="#ffd21f";g.beginPath();g.moveTo(0,-6*q);g.lineTo(4*q,0);g.lineTo(0,0);g.fill();
   g.strokeStyle="#ffd21f";g.lineWidth=1.3;g.beginPath();g.moveTo(0,8*q);for(let k=1;k<=6;k++)g.lineTo(Math.sin(T*5+k)*2*q,8*q+k*2.4*q);g.stroke();g.restore();}
+// the points that make up the greeting: the words are drawn once off screen, then sampled
+let txtPts=null;
+document.fonts.load('bold 64px "Yatra One"').catch(()=>{}).then(()=>{const t="Happy Chhath Puja 2026",c=document.createElement("canvas"),x=c.getContext("2d");x.font='bold 64px "Yatra One","Mukta",sans-serif';
+  const w=Math.ceil(x.measureText(t).width)+16;c.width=w;c.height=96;x.font='bold 64px "Yatra One","Mukta",sans-serif';x.textBaseline="middle";x.fillStyle="#000";x.fillText(t,8,50);
+  const d=x.getImageData(0,0,w,96).data,out=[];for(let j=0;j<96;j+=2)for(let i=0;i<w;i+=2)if(d[(j*w+i)*4+3]>128)out.push([(i-w/2)/w,(j-48)/w]);txtPts=out;});
 function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(playing?1:.15);
   const dpr=Math.min(2,devicePixelRatio||1),W=innerWidth,H=innerHeight;
   if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);}
@@ -485,7 +490,7 @@ function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(pla
       g.lineWidth=1.2*q;g.lineCap="round";g.beginPath();g.moveTo(hx-dir*q,wy-8*q);g.lineTo(sx+dir*1.6*q,wy-16.5*q);g.stroke();
       g.fillStyle="#d9992e";dot(sx+dir*1.2*q,wy-17*q,1.4*q);g.fillStyle="rgba(255,255,255,.85)";for(let k=0;k<4;k++)g.fillRect(sx-.3*q,wy-16*q+((T*2+k/4)%1)*5*q,.6*q,1.3*q);}});
   // fireworks: rockets lit by the children, shells from the steps, and a greeting written in the sky
-  const q0=u*.85,rkx=W*.445+q0*1.5,rky=stepY(W*.445,W,H)-q0*9;
+  const q0=u*.85,gyR=H*.8,rkx=W*.79,rky=gyR-q0*9;
   const fw=(cx,cy,t,seed,R)=>{const e=1-Math.pow(1-t,3),h=(seed*47)%360;
     for(let i=0;i<46;i++){const an=i/46*6.283,sp=R*(.6+.4*hash(i+seed*9)),x=cx+Math.cos(an)*sp*e,y=cy+Math.sin(an)*sp*e+R*.55*t*t;
       g.fillStyle=`hsl(${h+(i%3)*25} 100% ${72-t*22}% / ${Math.max(0,1-t*1.1)})`;dot(x,y,2.4*(1-t*.6));
@@ -495,12 +500,13 @@ function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(pla
     if(t<.2){const w=t/.2,e=1-(1-w)*(1-w);for(let j=0;j<8;j++){const ww=Math.max(0,e-j*.03);g.fillStyle=`hsl(${38-j*4} 100% ${82-j*6}% / ${1-j/9})`;dot(x0+(x1-x0)*ww,y0+(y1-y0)*ww,2.6-j*.25);}}
     else if(t<.8)fw(x1,y1,(t-.2)/.6,k+seed,H*(.09+r*.07));};
   rocket(rkx,rky,5.3,0,1);rocket(rkx,rky,7.1,2.5,2);rocket(W*.14,H*.62,9,4,3);rocket(W*.3,H*.7,11,1,4);rocket(W*.2,H*.63,13,7,5);
-  {const c=(T%22)/22,a=c<.05?c/.05:c<.7?1:c<.78?(.78-c)/.08:0;
-  if(c<.3){fw(W*.18,H*.34,c/.3,11,H*.13);fw(W*.82,H*.34,Math.min(1,c/.3+.1),12,H*.13);}
-  if(a>0){const fs=Math.min(W*.06,H*.1),cx2=W*.5,cy2=H*.3+Math.sin(T*1.4)*u*.4;g.save();g.globalAlpha=a;g.textAlign="center";g.lineJoin="round";g.fillStyle="#ffd21f";g.strokeStyle="#2a1200";
-    g.font=`${fs}px "Yatra One","Mukta",sans-serif`;g.lineWidth=fs*.16;g.strokeText("Happy Chhath Puja 2026",cx2,cy2);g.shadowColor="rgba(255,210,31,.9)";g.shadowBlur=20;g.fillText("Happy Chhath Puja 2026",cx2,cy2);g.shadowBlur=0;
-    g.font=`${fs*.55}px "Yatra One","Mukta",sans-serif`;g.lineWidth=fs*.1;g.strokeText("छठ पूजा की हार्दिक शुभकामनाएँ",cx2,cy2+fs*.85);g.fillText("छठ पूजा की हार्दिक शुभकामनाएँ",cx2,cy2+fs*.85);
-    g.fillStyle="#fff";for(let k=0;k<10;k++){const tw=Math.pow(Math.max(0,Math.sin(T*3+k*2.1)),6);g.globalAlpha=a*tw;dot(cx2+(hash(k+50)-.5)*fs*11,cy2-fs*.7+hash(k+70)*fs*1.9,2.4);}g.restore();}}
+  // every so often one rocket bursts into the greeting: sparks fly out and settle into the letters, glitter, then fall
+  if(txtPts){const P=16,c=(T+3)/P,t=c-Math.floor(c),tx=W*.5,ty=H*.3,Fw=Math.min(W*.6,780);
+    if(t<.12){const w=t/.12,e=1-(1-w)*(1-w);for(let j=0;j<8;j++){const ww=Math.max(0,e-j*.03);g.fillStyle=`hsl(${38-j*4} 100% ${82-j*6}% / ${1-j/9})`;dot(rkx+(tx-rkx)*ww,rky+(ty-rky)*ww,2.8-j*.25);}}
+    else if(t<.82){const b=(t-.12)/.7,e=Math.min(1,b/.22),ee=1-Math.pow(1-e,3),fade=b<.7?1:1-(b-.7)/.3,fall=b>.7?Math.pow((b-.7)/.3,2)*H*.12:0;
+      if(b<.3)fw(tx,ty,b/.3,21,Fw*.3);
+      for(let i=0;i<txtPts.length;i++){const q=txtPts[i],x=tx+q[0]*Fw*ee,y=ty+q[1]*Fw*ee+fall*(.5+hash(i));
+        g.fillStyle=`hsl(${38+hash(i)*22} 100% ${68+hash(i+7)*22}% / ${fade*(.6+.4*Math.sin(T*7+i))})`;dot(x,y,u*.3);}}}
   // ghat steps on the left bank
   g.fillStyle=sil;for(let i=0;i<4;i++)g.fillRect(0,H*(.63+i*.05),W*(.22+i*.09),H);
   const gx=W*.11,gy=H*.63;
@@ -548,13 +554,14 @@ function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(pla
     [.25,.29,.345,.435].forEach((f,k)=>walker(W*f,sy(f),q*(k===1?.9:1),0,"",1,pc));walker(W*.39,sy(.39),q*.6,T*5,"sparkler",1,pc);}}
   {const q=u*.85,pc=d===1?"#3b2218":sil,dx=W*(.03+.44*(.5-.5*Math.cos(T*.12))),dd=Math.sin(T*.12)>=0?1:-1;
   dog(dx,stepY(dx,W,H),q,dd,T*9,pc);
-  {const ky=stepY(W*.445,W,H),jmp=Math.abs(Math.sin(T*5))*1.6*q;                                              // children lighting a rocket; one jumps for joy
-  g.strokeStyle="#8a6a3a";g.lineWidth=2;g.beginPath();g.moveTo(W*.445,ky);g.lineTo(rkx,rky);g.stroke();g.fillStyle="#e8492d";dot(rkx,rky,2);
+  {const gy=gyR,jmp=Math.abs(Math.sin(T*5))*1.6*q;                                                                // a sandbank on the right: children light crackers
+  g.fillStyle=sil;g.beginPath();g.moveTo(W*.58,H);g.quadraticCurveTo(W*.64,gy,W*.69,gy);g.lineTo(W,gy-H*.01);g.lineTo(W,H);g.fill();
+  g.strokeStyle="#8a6a3a";g.lineWidth=2;g.beginPath();g.moveTo(rkx-q*1.2,gy);g.lineTo(rkx,rky);g.stroke();g.fillStyle="#e8492d";dot(rkx,rky,2);
   g.fillStyle=`rgba(255,220,120,${.5+.5*Math.sin(T*30)})`;dot(rkx,rky-2,2.2);
-  walker(W*.425,ky,q*.65,0,"sparkler",1,pc);walker(W*.475,ky-jmp,q*.6,0,"",-1,pc);
-  const ax=W*.405;g.fillStyle="#7a3b1a";g.beginPath();g.moveTo(ax-1.4*q,ky);g.lineTo(ax-q,ky-3.5*q);g.lineTo(ax+q,ky-3.5*q);g.lineTo(ax+1.4*q,ky);g.fill();   // anar fountain
-  for(let i=0;i<34;i++){const t=(T*1.3+hash(i))%1,an=(hash(i+9)-.5),v=u*14*(.6+hash(i+4)*.5);g.fillStyle=`hsl(${35+hash(i)*20} 100% ${65+t*20}% / ${1-t})`;dot(ax+Math.sin(an)*v*t,ky-3.5*q-Math.cos(an)*v*t+u*14*t*t*.9,1.5);}
-  const cxs=W*.355,cys=stepY(cxs,W,H)-1.3*q;                                                                   // chakri spinning on the step
+  walker(W*.76,gy,q*.65,0,"sparkler",1,pc);walker(W*.825,gy-jmp,q*.6,0,"",-1,pc);
+  const ax=W*.725;g.fillStyle="#7a3b1a";g.beginPath();g.moveTo(ax-1.4*q,gy);g.lineTo(ax-q,gy-3.5*q);g.lineTo(ax+q,gy-3.5*q);g.lineTo(ax+1.4*q,gy);g.fill();   // anar fountain
+  for(let i=0;i<34;i++){const t=(T*1.3+hash(i))%1,an=(hash(i+9)-.5),v=u*14*(.6+hash(i+4)*.5);g.fillStyle=`hsl(${35+hash(i)*20} 100% ${65+t*20}% / ${1-t})`;dot(ax+Math.sin(an)*v*t,gy-3.5*q-Math.cos(an)*v*t+u*14*t*t*.9,1.5);}
+  const cxs=W*.695,cys=gy-1.3*q;                                                                                  // chakri spinning
   for(let k=0;k<10;k++){const an=T*12+k*.63,rr=(2+k*.45)*q;g.fillStyle=`hsl(${40+k*3} 100% 70% / ${1-k/11})`;dot(cxs+Math.cos(an)*rr,cys+Math.sin(an)*rr*.45,1.6);}
   g.fillStyle="#fff";dot(cxs,cys,1.8);}                                                                          // the ghat dog
   if(d===0||d===3){const kx0=W*.38,ky0=stepY(kx0,W,H);walker(kx0,ky0,q*.7,0,"",1,pc);                          // a child flying a kite
