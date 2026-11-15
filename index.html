@@ -68,6 +68,10 @@ body.idle .stay{opacity:1}
 @media(max-width:900px){.stay .song{max-width:none;margin-bottom:96px}.up{left:14px}}
 .stay .song small{color:#ffd21f;font-weight:800}
 .credit{position:fixed;z-index:3;right:12px;bottom:8px;font:800 .72rem/1 var(--body);letter-spacing:.05em;color:#ffd21f;background:rgba(30,12,0,.7);border:1.5px solid #ffd21f;border-radius:999px;padding:4px 11px;white-space:nowrap;pointer-events:none;box-shadow:0 0 10px rgba(255,210,31,.3)}
+.sun{position:fixed;z-index:3;top:14px;right:14px;text-align:center;color:#ffd21f;background:rgba(30,12,0,.7);border:2px solid #ffd21f;border-radius:14px;padding:7px 14px 8px;font:800 .78rem/1.3 var(--body);letter-spacing:.04em;box-shadow:0 0 14px rgba(255,210,31,.3);pointer-events:none}
+.sun b{display:block;font:400 clamp(1.5rem,3.2vw,2.3rem)/1.1 var(--display);font-variant-numeric:tabular-nums;letter-spacing:.03em}
+.sun span{display:block}.sun #sunl{text-transform:uppercase;letter-spacing:.14em;font-size:.72rem}.sun #suni{font-weight:600;font-size:.72rem;opacity:.9}
+@media(max-width:700px){.sun{top:10px;right:10px;padding:5px 9px}.sun #suni{display:none}}
 .note{background:var(--ghat);border-left:4px solid var(--marigold);padding:8px 12px;border-radius:6px;margin:0;max-width:70ch}
 .note[hidden]{display:none}
 .bottom{padding:56px 16px 40px;background:linear-gradient(transparent,rgba(10,5,20,.9) 50%);display:grid;gap:10px}
@@ -122,6 +126,7 @@ body:not(.playing) .eq i{animation-play-state:paused}
 <canvas id="cv" aria-hidden="true"></canvas>
 
 <div class="credit">Built by Saket</div>
+<div class="sun" aria-live="off"><span id="sunl">Sunset in</span><b id="sunt">--:--:--</b><span id="suni"></span></div>
 <div class="stay" aria-hidden="true"><div id="sday"></div><div class="up" id="sup"></div><div class="song"><span id="st"></span><small id="sa"></small></div></div>
 
 <div class="ui">
@@ -601,6 +606,27 @@ function draw(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt*(pla
   if(d!==0)for(let i=0;i<=26;i++){const v=i/26;g.fillStyle=`hsl(${[45,0,130,200][i%4]} 95% 62% / ${.4+.6*(.5+.5*Math.sin(T*3+i*1.7))})`;dot(v*W,H*.33+Math.sin(v*Math.PI)*H*.035,2.6);}
   if(!still)requestAnimationFrame(draw);}
 requestAnimationFrame(draw);if(still)addEventListener("resize",()=>requestAnimationFrame(draw));
+
+// sunrise and sunset for Purnia, Bihar, worked out from its position (NOAA method, good to about a minute or two) and shown in India time
+const PUR=[25.78,87.47];
+function sunEvent(y,m,d,lat,lon,rise){const r=Math.PI/180,dg=x=>x/r;
+  const at=min=>{const jc=((Date.UTC(y,m-1,d)/864e5+2440587.5+min/1440)-2451545)/36525,
+    L0=(280.46646+jc*(36000.76983+jc*.0003032))%360,M=357.52911+jc*(35999.05029-.0001537*jc),e=.016708634-jc*(.000042037+1.267e-7*jc),
+    C=Math.sin(M*r)*(1.914602-jc*(.004817+.000014*jc))+Math.sin(2*M*r)*(.019993-.000101*jc)+Math.sin(3*M*r)*.000289,
+    om=125.04-1934.136*jc,lam=L0+C-.00569-.00478*Math.sin(om*r),
+    eps=23+(26+(21.448-jc*(46.815+jc*(.00059-jc*.001813)))/60)/60+.00256*Math.cos(om*r),
+    dec=Math.asin(Math.sin(eps*r)*Math.sin(lam*r)),yy=Math.tan(eps*r/2)**2,
+    eq=4*dg(yy*Math.sin(2*L0*r)-2*e*Math.sin(M*r)+4*e*yy*Math.sin(M*r)*Math.cos(2*L0*r)-.5*yy*yy*Math.sin(4*L0*r)-1.25*e*e*Math.sin(2*M*r)),
+    ha=dg(Math.acos(Math.cos(90.833*r)/(Math.cos(lat*r)*Math.cos(dec))-Math.tan(lat*r)*Math.tan(dec)));
+    return 720-4*lon-eq+(rise?-1:1)*4*ha;};
+  let t=at(720);t=at(t);return Date.UTC(y,m-1,d)+at(t)*6e4;}
+const ist=ms=>new Date(ms).toLocaleTimeString("en-IN",{timeZone:"Asia/Kolkata",hour:"numeric",minute:"2-digit"}).toUpperCase();
+function sunTick(){const t=Date.now(),n=new Date(t+19800000),y=n.getUTCFullYear(),m=n.getUTCMonth()+1,d=n.getUTCDate(),nx=new Date(Date.UTC(y,m-1,d+1)),
+    rise=sunEvent(y,m,d,...PUR,true),set=sunEvent(y,m,d,...PUR,false),rise2=sunEvent(nx.getUTCFullYear(),nx.getUTCMonth()+1,nx.getUTCDate(),...PUR,true);
+  const [lab,at]=t<rise?["Sunrise in",rise]:t<set?["Sunset in",set]:["Sunrise in",rise2],sec=Math.max(0,Math.round((at-t)/1000)),p=v=>String(v).padStart(2,"0");
+  $("sunl").textContent=lab;$("sunt").textContent=`${p(Math.floor(sec/3600))}:${p(Math.floor(sec/60)%60)}:${p(sec%60)}`;
+  $("suni").textContent=`Purnia, Bihar · Sunrise ${ist(rise)} · Sunset ${ist(set)}`;}
+sunTick();setInterval(sunTick,1000);
 
 $("pl").href="https://www.youtube.com/watch_videos?video_ids="+S.slice(0,50).map(s=>s[0]).join(",");
 setDay(todayIdx>=0?todayIdx:now0.getHours()<12?3:2);
