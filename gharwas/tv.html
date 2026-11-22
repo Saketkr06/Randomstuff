@@ -46,7 +46,8 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
 @keyframes glow{to{text-shadow:0 0 .9em #f5c542cc,0 .05em .2em #000}}
 [hidden]{display:none!important}
 #yt{position:fixed;left:0;bottom:0;width:320px;height:180px;opacity:0;pointer-events:none}
-#snd{position:fixed;left:2em;bottom:2em;z-index:5;font-weight:700;font-size:1.6em;font-family:inherit;color:#3b0710;background:var(--g);border:0;border-radius:2em;padding:.5em 1.2em;cursor:pointer}
+#snd{position:fixed;left:1.2em;bottom:1.2em;z-index:5;font-size:1.2em;color:#3b0710;background:var(--g);border:0;border-radius:50%;width:2em;height:2em;opacity:.35;cursor:pointer}
+#snd:focus,#snd:hover{opacity:1}
 </style></head><body>
 <main class="stage">
  <section class="frame shiv"><img src="img/shiv.jpg" alt="Bhagwan Shiv"><div class="cap">ॐ नमः शिवाय</div></section>
@@ -69,7 +70,7 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
  </section>
 </main>
 <div id="yt"></div>
-<button id="snd" autofocus>🔊 शिव भजन शुरू करें</button>
+<button id="snd" autofocus title="शिव भजन शुरू करें" aria-label="Start Shiv bhajan">🔊</button>
 <script>
 /* Background Shiv music from YouTube (needs internet). Browsers block sound until one tap/OK press, hence the button.
    Plays the Bollywood Shiv jukebox, then the bhajan playlist, then repeats. Edit SRC to change what plays (v = one video, l = playlist ID). */
