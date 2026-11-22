@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="hi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gharwas – Shiv Bhawan (TV screen)</title>
+<style>
+/* 16:9 TV screen (53" = 1920x1080). Pure HTML+CSS, no JS, no network. Everything is sized in em;
+   1em = 1% of the stage width, so it scales to any 16:9 screen. Open full screen (F11 / TV browser). */
+:root{--g:#f5c542;--cream:#fff3d6;--d:#3b0710}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:#1a0307;overflow:hidden}
+body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",Georgia,serif;color:var(--cream)}
+.stage{width:min(100vw,177.78vh);aspect-ratio:16/9;font-size:min(1vw,1.7778vh);position:relative;
+ background:radial-gradient(ellipse at 50% 0,#a3182d,var(--d) 72%);padding:2.5em;
+ display:grid;grid-template-columns:22em 1fr 26em;grid-template-rows:100%;gap:2.5em;overflow:hidden}
+.stage>*{min-height:0}
+.stage::before{content:"";position:absolute;inset:.9em;border:.15em solid var(--g);border-radius:1.2em;pointer-events:none;
+ box-shadow:inset 0 0 0 .5em var(--d),inset 0 0 0 .6em #f5c54288}
+.frame{position:relative;border:.25em solid var(--g);border-radius:1em;overflow:hidden;box-shadow:0 0 2em #000a,0 0 1.2em #f5c54255}
+.frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.cap{position:absolute;left:0;right:0;bottom:0;padding:2.2em .6em .6em;text-align:center;font-weight:700;font-size:1.5em;
+ background:linear-gradient(transparent,#1a0307ee);text-shadow:0 .1em .3em #000}
+/* left: Shiv */
+.shiv{align-self:center;height:44em}
+.shiv .cap{color:var(--g);font-size:1.9em}
+/* middle */
+.mid{display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;padding:.8em 0}
+.top{font-size:1.7em;color:var(--g);letter-spacing:.15em}
+.wel{font-size:4.6em;font-weight:800;color:var(--g);line-height:1.1;text-shadow:0 .06em .3em #000}
+.en{font-size:1.8em;letter-spacing:.05em}
+.name{font-size:3.7em;font-weight:800;line-height:1.05;color:#fff;text-shadow:0 0 .5em #f5c54299,0 .05em .2em #000}
+.name small{font-size:.55em;font-weight:600;letter-spacing:.2em;color:var(--g);display:block}
+.house{width:100%;aspect-ratio:16/9;max-height:19em;flex:none}
+.house img{object-position:50% 60%}
+.bhoj{width:100%;background:#fff3d6;color:#5a0a18;border-radius:1em;border:.2em solid var(--g);padding:.7em 1em;box-shadow:0 0 1.2em #0008}
+.bhoj b{display:block;font-size:2.1em;line-height:1.15}
+.bhoj span{display:block;font-size:1.9em;font-weight:700;line-height:1.3}
+.bhoj i{display:block;font-size:1.4em;font-style:normal;margin-top:.1em}
+/* right: parents + hosts */
+.right{display:grid;grid-template-rows:24em minmax(0,1fr);gap:1.3em}
+.hosts{display:grid;grid-template-columns:1fr 1fr;gap:1em;min-height:0}
+.hosts .cap{font-size:1.25em}
+.hosts img{object-position:50% 30%}
+.hosts .w img{object-position:50% 40%}
+.sub{position:absolute;left:0;right:0;top:0;padding:.5em;text-align:center;background:#1a0307bb;font-weight:700;font-size:1.5em;color:var(--g)}
+@media (prefers-reduced-motion:no-preference){.name{animation:glow 4s ease-in-out infinite alternate}}
+@keyframes glow{to{text-shadow:0 0 .9em #f5c542cc,0 .05em .2em #000}}
+</style></head><body>
+<main class="stage">
+ <section class="frame shiv"><img src="img/shiv.jpg" alt="Bhagwan Shiv"><div class="cap">ॐ नमः शिवाय</div></section>
+
+ <section class="mid">
+  <div class="top">॥ श्री गणेशाय नमः ॥</div>
+  <div class="wel">स्वागतम्</div>
+  <div class="en">Welcome to the Gharwas of</div>
+  <div class="name">शिव भवन<small>SHIV BHAWAN</small></div>
+  <div class="frame house"><img src="img/house.jpg" alt="Shiv Bhawan"></div>
+  <div class="bhoj"><b>प्रीतिभोज</b><span>23.11.2026, सोमवार · संध्या 6 बजे से</span><i>स्थान: दुर्गागंज, कटिहार &nbsp;|&nbsp; विनीत: पंकज कुमार सिंह</i></div>
+ </section>
+
+ <section class="right">
+  <div class="frame"><img src="img/parents.jpg" alt="Mata-Pita"><div class="cap">माता-पिता का आशीर्वाद 🙏</div></div>
+  <div class="hosts">
+   <div class="frame"><img src="img/host-man.jpg" alt=""><div class="cap">पंकज कुमार सिंह</div></div>
+   <div class="frame w"><img src="img/host-woman.jpg" alt=""><div class="cap">सपरिवार स्वागत में</div></div>
+  </div>
+ </section>
+</main>
+</body></html>
