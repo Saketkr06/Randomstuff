@@ -71,15 +71,16 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
 <div id="yt"></div>
 <button id="snd" autofocus>🔊 शिव भजन शुरू करें</button>
 <script>
-/* Background shiv bhajans from a YouTube playlist (needs internet). Browsers block sound until one tap/OK press, hence the button.
-   ponytail: YouTube can't cap a playlist at 100 tracks; paste a 100-song playlist ID below to get exactly that. */
-const PLAYLIST="PLM3TSQaW_spNh9Nw05xq6VvWOMBlgjdBB";
-let p;
-window.onYouTubeIframeAPIReady=()=>{p=new YT.Player("yt",{playerVars:{listType:"playlist",list:PLAYLIST,autoplay:1,playsinline:1},events:{
- onReady:e=>{e.target.setLoop(true);e.target.setShuffle(true);e.target.playVideo()},
- onStateChange:e=>{if(e.data===1)snd.hidden=true},
- onError:e=>e.target.nextVideo()}})};
-snd.onclick=()=>p&&(p.setShuffle(true),p.playVideo());
+/* Background Shiv music from YouTube (needs internet). Browsers block sound until one tap/OK press, hence the button.
+   Plays the Bollywood Shiv jukebox, then the bhajan playlist, then repeats. Edit SRC to change what plays (v = one video, l = playlist ID). */
+const SRC=[{v:"ZzRQSHpemPs"},{l:"PLM3TSQaW_spNh9Nw05xq6VvWOMBlgjdBB"}];
+let p,i=0;
+const go=()=>{const s=SRC[i%SRC.length];s.v?p.loadVideoById(s.v):p.loadPlaylist({listType:"playlist",list:s.l,index:Math.floor(Math.random()*100)})};
+window.onYouTubeIframeAPIReady=()=>{p=new YT.Player("yt",{playerVars:{playsinline:1},events:{
+ onReady:go,
+ onStateChange:e=>{if(e.data===1)snd.hidden=true;if(e.data===0){i++;go()}},
+ onError:()=>{SRC[i%SRC.length].v?(i++,go()):p.nextVideo()}}})};
+snd.onclick=()=>p&&(p.getPlayerState()===1||p.playVideo());
 document.head.appendChild(Object.assign(document.createElement("script"),{src:"https://www.youtube.com/iframe_api"}));
 </script>
 </body></html>
