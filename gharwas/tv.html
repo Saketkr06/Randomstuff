@@ -67,15 +67,15 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
 <div id="yt"></div>
 <button id="snd" autofocus title="शिव भजन शुरू करें" aria-label="Start Shiv bhajan">🔊</button>
 <script>
-/* Background Shiv music from YouTube (needs internet). Browsers block sound until one tap/OK press, hence the button.
-   Plays the Bollywood Shiv jukebox, then the bhajan playlist, then repeats. Edit SRC to change what plays (v = one video, l = playlist ID). */
-const SRC=[{v:"ZzRQSHpemPs"},{l:"PLM3TSQaW_spNh9Nw05xq6VvWOMBlgjdBB"}];
+/* Background Shiv devotional music from YouTube playlists (needs internet). Browsers block sound until one tap/OK press, hence the button.
+   Plays the sources in order, then repeats. Edit SRC to change what plays (l = YouTube playlist ID). */
+const SRC=[{l:"PLkATqEKojb1GVrrzvxaE_dFJXrT2Ma-Q0"},{l:"PLNnsrbMKr2O1X0YCqwnttkOSqKPrEpA55"},{l:"PLwOqiCzUK-HdnCOO59TnuxWDiBRZ8i_Qu"}];
 let p,i=0;
-const go=()=>{const s=SRC[i%SRC.length];s.v?p.loadVideoById(s.v):p.loadPlaylist({listType:"playlist",list:s.l,index:Math.floor(Math.random()*100)})};
+const go=()=>p.loadPlaylist({listType:"playlist",list:SRC[i%SRC.length].l});
 window.onYouTubeIframeAPIReady=()=>{p=new YT.Player("yt",{playerVars:{playsinline:1},events:{
  onReady:go,
  onStateChange:e=>{if(e.data===1)snd.hidden=true;if(e.data===0){i++;go()}},
- onError:()=>{SRC[i%SRC.length].v?(i++,go()):p.nextVideo()}}})};
+ onError:()=>p.nextVideo()}})};
 snd.onclick=()=>p&&(p.getPlayerState()===1||p.playVideo());
 document.head.appendChild(Object.assign(document.createElement("script"),{src:"https://www.youtube.com/iframe_api"}));
 </script>
