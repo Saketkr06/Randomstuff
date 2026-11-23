@@ -45,7 +45,8 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
 [hidden]{display:none!important}
 #yt{position:fixed;left:0;bottom:0;width:320px;height:180px;opacity:0;pointer-events:none}
 #snd{position:fixed;left:1.2em;bottom:1.2em;z-index:5;font-size:1.2em;color:#3b0710;background:var(--g);border:0;border-radius:50%;width:2em;height:2em;opacity:.35;cursor:pointer}
-#nxt{position:fixed;left:4em;bottom:1.2em;z-index:5;font-size:1.2em;color:#3b0710;background:var(--g);border:0;border-radius:50%;width:2em;height:2em;opacity:.35;cursor:pointer}
+#nxt{position:fixed;left:4em;bottom:1.2em;z-index:5;font-family:inherit;font-weight:700;font-size:1.15em;color:#3b0710;background:var(--g);border:0;border-radius:2em;padding:.5em 1.1em;opacity:.9;cursor:pointer;white-space:nowrap}
+#snd[hidden]+#nxt{left:1.2em}
 #snd:focus,#snd:hover,#nxt:focus,#nxt:hover{opacity:1}
 /* gentle animation (CSS only; off when the device asks for reduced motion) */
 @media (prefers-reduced-motion:no-preference){
@@ -101,7 +102,7 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
 </main>
 <div id="yt"></div>
 <button id="snd" autofocus title="शिव भजन शुरू करें" aria-label="Start Shiv bhajan">🔊</button>
-<button id="nxt" title="अगला गाना" aria-label="Next song">⏭</button>
+<button id="nxt" title="अगला गाना" aria-label="Next song">⏭ अगला गाना</button>
 <script>
 /* Background Shiv music from YouTube (needs internet). Browsers block sound until one tap/OK press, hence the button.
    Plays the sources in order, then repeats. v = single video ID, l = playlist ID. A source that won't play is skipped. */
