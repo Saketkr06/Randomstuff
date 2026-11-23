@@ -47,6 +47,8 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
 #snd{position:fixed;left:1.2em;bottom:1.2em;z-index:5;font-size:1.2em;color:#3b0710;background:var(--g);border:0;border-radius:50%;width:2em;height:2em;opacity:.35;cursor:pointer}
 #nav{position:fixed;left:4em;bottom:1.2em;z-index:5;display:flex;gap:.6em}
 #snd[hidden]+#nav{left:1.2em}
+#nav{opacity:0;pointer-events:none;transition:opacity .4s}
+#nav.show{opacity:1;pointer-events:auto}
 #prv,#nxt{font-family:inherit;font-weight:700;font-size:1.15em;color:#3b0710;background:var(--g);border:0;border-radius:2em;padding:.5em 1.1em;opacity:.9;cursor:pointer;white-space:nowrap}
 #snd:focus,#snd:hover,#prv:focus,#prv:hover,#nxt:focus,#nxt:hover{opacity:1}
 /* gentle animation (CSS only; off when the device asks for reduced motion) */
@@ -139,7 +141,9 @@ window.onYouTubeIframeAPIReady=()=>{p=new YT.Player("yt",{playerVars:{playsinlin
 const next=()=>{if(!p)return;const s=cur(),pl=s.l&&p.getPlaylist&&p.getPlaylist();if(pl&&p.getPlaylistIndex()<pl.length-1)p.nextVideo();else{i++;go()}};
 const prev=()=>{if(!p)return;const s=cur(),pl=s.l&&p.getPlaylist&&p.getPlaylist();if(pl&&p.getPlaylistIndex()>0)p.previousVideo();else{i--;go()}};
 nxt.onclick=next;prv.onclick=prev;
-document.onkeydown=e=>{if(e.key==="ArrowRight"||e.key==="MediaTrackNext"||e.key==="n")next();if(e.key==="ArrowLeft"||e.key==="MediaTrackPrevious"||e.key==="p")prev()};
+let hideT;const reveal=()=>{nav.classList.add("show");clearTimeout(hideT);hideT=setTimeout(()=>nav.classList.remove("show"),4000)};
+["pointermove","pointerdown","touchstart"].forEach(t=>addEventListener(t,reveal,{passive:true}));
+document.onkeydown=e=>{reveal();if(e.key==="ArrowRight"||e.key==="MediaTrackNext"||e.key==="n")next();if(e.key==="ArrowLeft"||e.key==="MediaTrackPrevious"||e.key==="p")prev()};
 snd.onclick=()=>p&&(p.getPlayerState()===1||p.playVideo());
 document.head.appendChild(Object.assign(document.createElement("script"),{src:"https://www.youtube.com/iframe_api"}));
 </script>
