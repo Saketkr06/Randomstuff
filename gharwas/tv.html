@@ -46,6 +46,26 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
 #yt{position:fixed;left:0;bottom:0;width:320px;height:180px;opacity:0;pointer-events:none}
 #snd{position:fixed;left:1.2em;bottom:1.2em;z-index:5;font-size:1.2em;color:#3b0710;background:var(--g);border:0;border-radius:50%;width:2em;height:2em;opacity:.35;cursor:pointer}
 #snd:focus,#snd:hover{opacity:1}
+/* gentle animation (CSS only; off when the device asks for reduced motion) */
+@media (prefers-reduced-motion:no-preference){
+ .stage>*,.top,.wel,.en,.name{animation:rise 1.2s cubic-bezier(.2,.7,.2,1) both}
+ .stage>.mid{animation:none}
+ .top{animation-delay:.2s}.wel{animation-delay:.5s}.en{animation-delay:.8s}.name{animation:rise 1.2s 1s both,glow 4s 2.2s ease-in-out infinite alternate}
+ .house{animation:rise 1.2s 1.2s both}.bhoj{animation:rise 1.2s 1.5s both}
+ .shiv{animation:rise 1.2s .1s both,aura 4s 1.3s ease-in-out infinite alternate}
+ .right .par{animation:rise 1.2s .6s both}.right .fam{animation:rise 1.2s 1s both}
+ .house img{animation:kb 22s ease-in-out infinite alternate}
+ .par img{animation:kb 26s ease-in-out infinite alternate}
+ .fam img{animation:kb 30s ease-in-out infinite alternate}
+ .bhoj{position:relative;overflow:hidden}
+ .bhoj::after{content:"";position:absolute;top:0;bottom:0;width:30%;left:-40%;background:linear-gradient(100deg,transparent,#ffffffaa,transparent);animation:sweep 6s 3s ease-in-out infinite}
+ .stage::before{animation:rim 5s ease-in-out infinite alternate}
+}
+@keyframes rise{from{opacity:0;transform:translateY(2em)}to{opacity:1;transform:none}}
+@keyframes kb{from{transform:scale(1)}to{transform:scale(1.07)}}
+@keyframes aura{from{box-shadow:0 0 2em #000a,0 0 1em #f5c54255}to{box-shadow:0 0 2em #000a,0 0 3.2em #f5c542cc}}
+@keyframes sweep{0%{left:-40%}35%,100%{left:130%}}
+@keyframes rim{from{border-color:#f5c542aa}to{border-color:#fff3d6}}
 </style></head><body>
 <main class="stage">
  <section class="frame shiv"><img src="img/shiv.jpg?v=3" alt="Bhagwan Shiv"><div class="cap">ॐ नमः शिवाय</div></section>
