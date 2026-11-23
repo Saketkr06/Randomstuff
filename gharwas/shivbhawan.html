@@ -84,6 +84,7 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
 }
 @keyframes flick{0%{transform:scale(1,1) skewX(0)}12%{transform:scale(.93,1.08) skewX(-4deg)}27%{transform:scale(1.06,.94) skewX(3deg)}41%{transform:scale(.95,1.1) skewX(-2deg)}58%{transform:scale(1.04,.97) skewX(5deg)}73%{transform:scale(.97,1.06) skewX(-3deg)}100%{transform:scale(1,1) skewX(0)}}
 @keyframes halo{0%,100%{opacity:.75;transform:scale(1)}30%{opacity:1;transform:scale(1.12)}60%{opacity:.6;transform:scale(.94)}}
+#fw{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:4}
 </style></head><body>
 <main class="stage">
  <section class="frame shiv"><img src="img/shiv.jpg?v=3" alt="Bhagwan Shiv"><div class="cap">ॐ नमः शिवाय</div></section>
@@ -142,5 +143,38 @@ nxt.onclick=next;prv.onclick=prev;
 document.onkeydown=e=>{if(e.key==="ArrowRight"||e.key==="MediaTrackNext"||e.key==="n")next();if(e.key==="ArrowLeft"||e.key==="MediaTrackPrevious"||e.key==="p")prev()};
 snd.onclick=()=>p&&(p.getPlayerState()===1||p.playVideo());
 document.head.appendChild(Object.assign(document.createElement("script"),{src:"https://www.youtube.com/iframe_api"}));
+</script>
+<canvas id="fw" aria-hidden="true"></canvas>
+<script>
+/* Skyshot show: 50 shells, then a pause, then it repeats. Canvas, no libraries. Skipped if the device asks for reduced motion. */
+(()=>{
+if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+const SHOTS=50,PAUSE=45000,START=3500,c=document.getElementById("fw"),x=c.getContext("2d");
+let W,H,k;const fit=()=>{W=c.width=innerWidth;H=c.height=innerHeight;k=H/1080};fit();addEventListener("resize",fit);
+const COL=[[255,214,102],[255,140,50],[255,90,140],[255,255,255],[120,255,160],[120,190,255],[200,120,255]];
+const R=Math.random,rockets=[],parts=[];let fired=0,nextAt=performance.now()+START,last=performance.now();
+function launch(){fired++;rockets.push({x:W*(.12+.76*R()),y:H,vx:(R()-.5)*1.4*k,vy:-(11+5*R())*k,ty:H*(.1+.35*R())})}
+function burst(px,py){
+ const col=COL[R()*COL.length|0],alt=R()<.35?COL[R()*COL.length|0]:col,n=100+(R()*60|0),sp=(4+3.5*R())*k,willow=R()<.25;
+ for(let i=0;i<n;i++){const a=R()*6.2832,s=(.7+.3*R())*sp;
+  parts.push({x:px,y:py,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:0,m:(willow?120:70)+R()*40,c:i%3?col:alt,g:willow?.035:.05})}
+}
+function frame(now){
+ const dt=Math.min((now-last)/16.7,3);last=now;
+ if(fired<SHOTS&&now>=nextAt){launch();nextAt=now+(fired>40?120+230*R():450+800*R())}
+ if(fired>=SHOTS&&!rockets.length&&!parts.length&&nextAt<now){fired=0;nextAt=now+PAUSE}
+ if(!rockets.length&&!parts.length){x.clearRect(0,0,W,H);requestAnimationFrame(frame);return}
+ x.globalCompositeOperation="destination-out";x.fillStyle="rgba(0,0,0,.2)";x.fillRect(0,0,W,H);   // fade = trails
+ x.globalCompositeOperation="lighter";
+ for(let i=rockets.length;i--;){const r=rockets[i];r.x+=r.vx*dt;r.y+=r.vy*dt;r.vy*=.992;
+  x.fillStyle="rgba(255,225,160,.9)";x.beginPath();x.arc(r.x,r.y,2.2*k,0,6.2832);x.fill();
+  if(r.y<=r.ty||r.vy>-2.5*k){burst(r.x,r.y);rockets.splice(i,1)}}
+ for(let i=parts.length;i--;){const p=parts[i];p.l+=dt;if(p.l>=p.m){parts.splice(i,1);continue}
+  p.vx*=Math.pow(.985,dt);p.vy=p.vy*Math.pow(.985,dt)+p.g*k*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
+  const a=1-p.l/p.m;x.fillStyle="rgba("+p.c[0]+","+p.c[1]+","+p.c[2]+","+a.toFixed(2)+")";
+  x.beginPath();x.arc(p.x,p.y,(1.8+2.4*a)*k,0,6.2832);x.fill()}
+ requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+})();
 </script>
 </body></html>
