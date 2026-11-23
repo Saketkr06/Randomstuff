@@ -38,8 +38,6 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
 /* right: parents + family */
 .right{display:flex;flex-direction:column;justify-content:center;gap:1.3em}
 .right .frame{width:100%;flex:none}
-.par{aspect-ratio:1.15}.par img{object-position:50% 50%}
-.fam{aspect-ratio:3490/1400}
 @media (prefers-reduced-motion:no-preference){.name{animation:glow 4s ease-in-out infinite alternate}}
 @keyframes glow{to{text-shadow:0 0 .9em #f5c542cc,0 .05em .2em #000}}
 [hidden]{display:none!important}
@@ -61,7 +59,6 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
  .right .par{animation:rise 1.2s .6s both}.right .fam{animation:rise 1.2s 1s both}
  .house img{animation:kb 22s ease-in-out infinite alternate}
  .par img{animation:kb 26s ease-in-out infinite alternate}
- .fam img{animation:kb 30s ease-in-out infinite alternate}
  .bhoj{position:relative;overflow:hidden}
  .bhoj::after{content:"";position:absolute;top:0;bottom:0;width:30%;left:-40%;background:linear-gradient(100deg,transparent,#ffffffaa,transparent);animation:sweep 6s 3s ease-in-out infinite}
  .stage::before{animation:rim 5s ease-in-out infinite alternate}
@@ -86,10 +83,12 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
 @keyframes flick{0%{transform:scale(1,1) skewX(0)}12%{transform:scale(.93,1.08) skewX(-4deg)}27%{transform:scale(1.06,.94) skewX(3deg)}41%{transform:scale(.95,1.1) skewX(-2deg)}58%{transform:scale(1.04,.97) skewX(5deg)}73%{transform:scale(.97,1.06) skewX(-3deg)}100%{transform:scale(1,1) skewX(0)}}
 @keyframes halo{0%,100%{opacity:.75;transform:scale(1)}30%{opacity:1;transform:scale(1.12)}60%{opacity:.6;transform:scale(.94)}}
 #fw{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:4}
-/* family strip slideshow: the 4 photos, then moments from today; pure CSS, 6s each, 1s crossfade */
-.fam img.sl{opacity:0}.fam img.sl:first-child{opacity:1}
-@keyframes slide{0%{opacity:0}2.083%{opacity:1}12.5%{opacity:1}14.583%{opacity:0}100%{opacity:0}}
-@media (prefers-reduced-motion:no-preference){.fam img.sl{animation:slide 48s linear infinite both}}
+/* family section: one photo at a time (no collage), 3s each, 0.6s crossfade; whole photo shown (no zoom) over a blurred copy of itself */
+.fam{aspect-ratio:1.6}.par{aspect-ratio:1.7}.par img{object-position:50% 22%}.fam .sl{position:absolute;inset:0;opacity:0}.fam .sl:first-child{opacity:1}
+.fam .sl::before{content:"";position:absolute;inset:-8%;background:var(--bg) center/cover;filter:blur(1.4em) brightness(.65) saturate(1.1)}
+.fam .sl img{object-fit:contain;animation:none}
+@keyframes slide{0%{opacity:0}1.176%{opacity:1}5.882%{opacity:1}7.059%{opacity:0}100%{opacity:0}}
+@media (prefers-reduced-motion:no-preference){.fam .sl{animation:slide 51s linear infinite both}}
 </style></head><body>
 <main class="stage">
  <section class="frame shiv"><img src="img/shiv.jpg?v=3" alt="Bhagwan Shiv"><div class="cap">ॐ नमः शिवाय</div></section>
@@ -105,7 +104,7 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
 
  <section class="right">
   <div class="frame par"><img src="img/parents-new.jpg?v=7" alt="Mata-Pita"><div class="cap">माता-पिता का आशीर्वाद 🙏</div></div>
-  <div class="frame fam"><img class="sl" src="img/family-v2.jpg?v=12" alt="Pankaj Kumar Singh and family" style="animation-delay:-1s"><img class="sl" src="img/fam-1.jpg?v=13" alt="Family moments" style="animation-delay:6s"><img class="sl" src="img/fam-2.jpg?v=13" alt="Family moments" style="animation-delay:12s"><img class="sl" src="img/fam-3.jpg?v=13" alt="Family moments" style="animation-delay:18s"><img class="sl" src="img/fam-4.jpg?v=13" alt="Family moments" style="animation-delay:24s"><img class="sl" src="img/fam-5.jpg?v=13" alt="Family moments" style="animation-delay:30s"><img class="sl" src="img/fam-6.jpg?v=13" alt="Family moments" style="animation-delay:36s"><img class="sl" src="img/fam-7.jpg?v=13" alt="Family moments" style="animation-delay:42s"><div class="cap">पंकज कुमार सिंह एवं समस्त परिवार</div></div>
+  <div class="frame fam"><div class="sl" style="--bg:url(img/s01.jpg?v=15);animation-delay:-0.6s"><img src="img/s01.jpg?v=15" alt="Father"></div><div class="sl" style="--bg:url(img/s02.jpg?v=15);animation-delay:3s"><img src="img/s02.jpg?v=15" alt="Mother"></div><div class="sl" style="--bg:url(img/s03.jpg?v=15);animation-delay:6s"><img src="img/s03.jpg?v=15" alt="Daughter"></div><div class="sl" style="--bg:url(img/s04.jpg?v=15);animation-delay:9s"><img src="img/s04.jpg?v=15" alt="Daughter in purple dress"></div><div class="sl" style="--bg:url(img/s05.jpg?v=15);animation-delay:12s"><img src="img/s05.jpg?v=15" alt="Family moments"></div><div class="sl" style="--bg:url(img/s06.jpg?v=15);animation-delay:15s"><img src="img/s06.jpg?v=15" alt="Family moments"></div><div class="sl" style="--bg:url(img/s07.jpg?v=15);animation-delay:18s"><img src="img/s07.jpg?v=15" alt="Family moments"></div><div class="sl" style="--bg:url(img/s08.jpg?v=15);animation-delay:21s"><img src="img/s08.jpg?v=15" alt="Family moments"></div><div class="sl" style="--bg:url(img/s09.jpg?v=15);animation-delay:24s"><img src="img/s09.jpg?v=15" alt="Family moments"></div><div class="sl" style="--bg:url(img/s10.jpg?v=15);animation-delay:27s"><img src="img/s10.jpg?v=15" alt="Family moments"></div><div class="sl" style="--bg:url(img/s11.jpg?v=15);animation-delay:30s"><img src="img/s11.jpg?v=15" alt="Family moments"></div><div class="sl" style="--bg:url(img/s12.jpg?v=15);animation-delay:33s"><img src="img/s12.jpg?v=15" alt="Family moments"></div><div class="sl" style="--bg:url(img/s13.jpg?v=15);animation-delay:36s"><img src="img/s13.jpg?v=15" alt="Family moments"></div><div class="sl" style="--bg:url(img/s14.jpg?v=15);animation-delay:39s"><img src="img/s14.jpg?v=15" alt="Family moments"></div><div class="sl" style="--bg:url(img/s15.jpg?v=15);animation-delay:42s"><img src="img/s15.jpg?v=15" alt="Family moments"></div><div class="sl" style="--bg:url(img/s16.jpg?v=15);animation-delay:45s"><img src="img/s16.jpg?v=15" alt="Family moments"></div><div class="sl" style="--bg:url(img/s17.jpg?v=15);animation-delay:48s"><img src="img/s17.jpg?v=15" alt="Family moments"></div><div class="cap">पंकज कुमार सिंह एवं समस्त परिवार</div></div>
  </section>
 </main>
 <div id="yt"></div>
