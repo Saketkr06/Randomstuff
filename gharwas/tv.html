@@ -66,13 +66,27 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
 @keyframes aura{from{box-shadow:0 0 2em #000a,0 0 1em #f5c54255}to{box-shadow:0 0 2em #000a,0 0 3.2em #f5c542cc}}
 @keyframes sweep{0%{left:-40%}35%,100%{left:130%}}
 @keyframes rim{from{border-color:#f5c542aa}to{border-color:#fff3d6}}
+/* diyas beside the welcome heading */
+.wel{display:flex;align-items:center;justify-content:center;gap:.5em}
+.diya{position:relative;flex:none;width:.62em;height:.52em;font-size:1.35em}
+.diya::before{content:"";position:absolute;left:0;right:0;bottom:0;height:.22em;background:linear-gradient(#ffe08a,#c07a1c 70%,#8a4f0f);border-radius:.05em .05em .6em .6em/.05em .05em .22em .22em;box-shadow:0 .03em .12em #000a}
+.diya::after{content:"";position:absolute;left:50%;bottom:.1em;width:1.5em;height:1.5em;margin:0 0 -.45em -.75em;background:radial-gradient(circle,#ffb02e88,transparent 65%);pointer-events:none}
+.diya i{position:absolute;left:50%;bottom:.19em;width:.17em;height:.3em;margin-left:-.085em;border-radius:50% 50% 50% 50%/62% 62% 38% 38%;transform-origin:50% 92%;
+ background:radial-gradient(ellipse at 50% 78%,#fff9d0 0 22%,#ffd84d 45%,#ff8a1f 78%,transparent 100%);filter:drop-shadow(0 0 .12em #ffb02e)}
+@media (prefers-reduced-motion:no-preference){
+ .diya i{animation:flick 1.3s infinite ease-in-out}
+ .diya:last-child i{animation-duration:1.7s;animation-delay:-.6s}
+ .diya::after{animation:halo 2.2s infinite ease-in-out}
+}
+@keyframes flick{0%{transform:scale(1,1) skewX(0)}12%{transform:scale(.93,1.08) skewX(-4deg)}27%{transform:scale(1.06,.94) skewX(3deg)}41%{transform:scale(.95,1.1) skewX(-2deg)}58%{transform:scale(1.04,.97) skewX(5deg)}73%{transform:scale(.97,1.06) skewX(-3deg)}100%{transform:scale(1,1) skewX(0)}}
+@keyframes halo{0%,100%{opacity:.75;transform:scale(1)}30%{opacity:1;transform:scale(1.12)}60%{opacity:.6;transform:scale(.94)}}
 </style></head><body>
 <main class="stage">
  <section class="frame shiv"><img src="img/shiv.jpg?v=3" alt="Bhagwan Shiv"><div class="cap">ॐ नमः शिवाय</div></section>
 
  <section class="mid">
   <div class="top">॥ श्री गणेशाय नमः ॥</div>
-  <div class="wel">स्वागतम्</div>
+  <div class="wel"><span class="diya"><i></i></span>स्वागतम्<span class="diya"><i></i></span></div>
   <div class="en">Welcome to the Gharwas of</div>
   <div class="name">शिव भवन<small>SHIV BHAWAN</small></div>
   <div class="frame house"><img src="img/house-new.jpg?v=5" alt="Shiv Bhawan"></div>
