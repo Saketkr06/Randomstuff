@@ -84,11 +84,12 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
 @keyframes flick{0%{transform:scale(1,1) skewX(0)}12%{transform:scale(.93,1.08) skewX(-4deg)}27%{transform:scale(1.06,.94) skewX(3deg)}41%{transform:scale(.95,1.1) skewX(-2deg)}58%{transform:scale(1.04,.97) skewX(5deg)}73%{transform:scale(.97,1.06) skewX(-3deg)}100%{transform:scale(1,1) skewX(0)}}
 @keyframes halo{0%,100%{opacity:.75;transform:scale(1)}30%{opacity:1;transform:scale(1.12)}60%{opacity:.6;transform:scale(.94)}}
 #fw{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:4}
-/* family section: one photo at a time (no collage), 3s each, 0.6s crossfade; whole photo shown (no zoom) over a blurred copy of itself */
+/* family section: one photo at a time (no collage), 3s each; whole photo shown (no zoom) over a soft copy of itself (tiny thumbnail scaled up: no GPU blur) */
 .fam{aspect-ratio:1.6}.par{aspect-ratio:1.7}.par img{object-position:50% 22%}.fam .sl{position:absolute;inset:0;opacity:0}
-.fam .sl::before{content:"";position:absolute;inset:-8%;background:var(--bg) center/cover;filter:blur(1.4em) brightness(.65) saturate(1.1)}
+.fam .sl::before{content:"";position:absolute;inset:0;background:linear-gradient(#0000008c,#0000008c),var(--tb) center/cover}
 .fam .sl img{object-fit:contain;animation:none}
 .fam .sl{transition:opacity .6s}.fam .sl.on{opacity:1}
+#cnt{position:fixed;right:1em;bottom:.6em;z-index:9;font:1.1em monospace;color:#fff;background:#000a;padding:.2em .6em;border-radius:.4em}
 </style></head><body>
 <main class="stage">
  <section class="frame shiv"><img src="img/shiv.jpg?v=3" alt="Bhagwan Shiv"><div class="cap">ॐ नमः शिवाय</div></section>
@@ -104,7 +105,7 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
 
  <section class="right">
   <div class="frame par"><img src="img/parents-new.jpg?v=7" alt="Mata-Pita"><div class="cap">माता-पिता का आशीर्वाद 🙏</div></div>
-  <div class="frame fam"><div class="sl on" id="sa" style="--bg:url(img/s01.jpg?v=18)"><img src="img/s01.jpg?v=18" alt="Father"></div><div class="sl" id="sb"><img alt=""></div><div class="cap">पंकज कुमार सिंह एवं समस्त परिवार</div></div>
+  <div class="frame fam"><div class="sl on" id="sa" style="--tb:url(img/t01.jpg?v=19)"><img src="img/p01.jpg?v=19" alt="Father"></div><div class="sl" id="sb"><img alt=""></div><div class="cap">पंकज कुमार सिंह एवं समस्त परिवार</div></div>
  </section>
 </main>
 <div id="yt"></div>
@@ -193,16 +194,21 @@ requestAnimationFrame(frame);
 })();
 </script>
 <script>
-/* family photos: one at a time, 3s each. Only two photos are in the page at once (light on TV browsers); the next is loaded before it is shown. */
+/* family photos: one at a time, 3s each. Only two photos are in the page at once (light on TV browsers); the next one is loaded before it is shown.
+   A photo that fails or hangs (8s) is skipped, so it can never get stuck. Add ?debug to the address to see "photo number / total" in the corner. */
 (()=>{
-if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
-const P=["img/s01.jpg?v=18", "img/s02.jpg?v=18", "img/s03.jpg?v=18", "img/s04.jpg?v=18", "img/s05.jpg?v=18", "img/s06.jpg?v=18", "img/s07.jpg?v=18", "img/s08.jpg?v=18", "img/s09.jpg?v=18", "img/s10.jpg?v=18", "img/s11.jpg?v=18", "img/s12.jpg?v=18", "img/s13.jpg?v=18", "img/s14.jpg?v=18", "img/s15.jpg?v=18", "img/s16.jpg?v=18", "img/s17.jpg?v=18", "img/s18.jpg?v=18", "img/s19.jpg?v=18", "img/s20.jpg?v=18", "img/s21.jpg?v=18", "img/s22.jpg?v=18", "img/s23.jpg?v=18", "img/s24.jpg?v=18", "img/s25.jpg?v=18", "img/s26.jpg?v=18", "img/s27.jpg?v=18", "img/s28.jpg?v=18", "img/s29.jpg?v=18", "img/s30.jpg?v=18", "img/s35.jpg?v=18", "img/s31.jpg?v=18", "img/s32.jpg?v=18", "img/s33.jpg?v=18", "img/s34.jpg?v=18"],A=["Father", "Mother", "Daughter", "Daughter in purple dress", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments"];
-const L=[document.getElementById("sa"),document.getElementById("sb")];let cur=0;
-function show(n){const src=P[n],im=new Image();
- im.onload=()=>{const d=L[1-cur];d.style.setProperty("--bg","url("+src+")");const g=d.querySelector("img");g.src=src;g.alt=A[n];
-  d.classList.add("on");L[cur].classList.remove("on");cur=1-cur;setTimeout(()=>show((n+1)%P.length),3000)};
- im.onerror=()=>setTimeout(()=>show((n+1)%P.length),200);im.src=src}
-setTimeout(()=>show(1),3000);
+const P=["img/p01.jpg?v=19", "img/p02.jpg?v=19", "img/p03.jpg?v=19", "img/p04.jpg?v=19", "img/p05.jpg?v=19", "img/p06.jpg?v=19", "img/p07.jpg?v=19", "img/p08.jpg?v=19", "img/p09.jpg?v=19", "img/p10.jpg?v=19", "img/p11.jpg?v=19", "img/p12.jpg?v=19", "img/p13.jpg?v=19", "img/p14.jpg?v=19", "img/p15.jpg?v=19", "img/p16.jpg?v=19", "img/p17.jpg?v=19", "img/p18.jpg?v=19", "img/p19.jpg?v=19", "img/p20.jpg?v=19", "img/p21.jpg?v=19", "img/p22.jpg?v=19", "img/p23.jpg?v=19", "img/p24.jpg?v=19", "img/p25.jpg?v=19", "img/p26.jpg?v=19", "img/p27.jpg?v=19", "img/p28.jpg?v=19", "img/p29.jpg?v=19", "img/p30.jpg?v=19", "img/p31.jpg?v=19", "img/p32.jpg?v=19", "img/p33.jpg?v=19", "img/p34.jpg?v=19", "img/p35.jpg?v=19", "img/p36.jpg?v=19", "img/p37.jpg?v=19", "img/p38.jpg?v=19", "img/p39.jpg?v=19", "img/p40.jpg?v=19", "img/p41.jpg?v=19"],T=["img/t01.jpg?v=19", "img/t02.jpg?v=19", "img/t03.jpg?v=19", "img/t04.jpg?v=19", "img/t05.jpg?v=19", "img/t06.jpg?v=19", "img/t07.jpg?v=19", "img/t08.jpg?v=19", "img/t09.jpg?v=19", "img/t10.jpg?v=19", "img/t11.jpg?v=19", "img/t12.jpg?v=19", "img/t13.jpg?v=19", "img/t14.jpg?v=19", "img/t15.jpg?v=19", "img/t16.jpg?v=19", "img/t17.jpg?v=19", "img/t18.jpg?v=19", "img/t19.jpg?v=19", "img/t20.jpg?v=19", "img/t21.jpg?v=19", "img/t22.jpg?v=19", "img/t23.jpg?v=19", "img/t24.jpg?v=19", "img/t25.jpg?v=19", "img/t26.jpg?v=19", "img/t27.jpg?v=19", "img/t28.jpg?v=19", "img/t29.jpg?v=19", "img/t30.jpg?v=19", "img/t31.jpg?v=19", "img/t32.jpg?v=19", "img/t33.jpg?v=19", "img/t34.jpg?v=19", "img/t35.jpg?v=19", "img/t36.jpg?v=19", "img/t37.jpg?v=19", "img/t38.jpg?v=19", "img/t39.jpg?v=19", "img/t40.jpg?v=19", "img/t41.jpg?v=19"],A=["Father", "Mother", "Daughter", "Daughter in purple dress", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments", "Family moments"];
+const L=[document.getElementById("sa"),document.getElementById("sb")];let cur=0,bad=0;
+const dbg=/debug/.test(location.search),badge=dbg&&document.body.appendChild(Object.assign(document.createElement("div"),{id:"cnt"}));
+function show(n){const src=P[n],im=new Image();let done=0;
+ const nxt=(ms)=>setTimeout(()=>show((n+1)%P.length),ms);
+ const guard=setTimeout(()=>{if(done)return;done=1;im.onload=im.onerror=null;bad++;nxt(300)},8000);
+ im.onload=()=>{if(done)return;done=1;clearTimeout(guard);bad=0;const d=L[1-cur];d.style.setProperty("--tb","url("+T[n]+")");const g=d.querySelector("img");g.src=src;g.alt=A[n];
+  d.classList.add("on");L[cur].classList.remove("on");cur=1-cur;if(badge)badge.textContent=(n+1)+" / "+P.length;nxt(3000)};
+ im.onerror=()=>{if(done)return;done=1;clearTimeout(guard);bad++;if(badge)badge.textContent="skip "+(n+1);nxt(bad>5?3000:300)};
+ im.src=src}
+if(!matchMedia("(prefers-reduced-motion:reduce)").matches)setTimeout(()=>show(1),3000);
+if(badge)badge.textContent="1 / "+P.length;
 })();
 </script>
 </body></html>
