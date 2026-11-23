@@ -109,24 +109,22 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
 <div id="nav"><button id="prv" title="पिछला गाना" aria-label="Previous song">⏮ पिछला गाना</button>
 <button id="nxt" title="अगला गाना" aria-label="Next song">⏭ अगला गाना</button></div>
 <script>
-/* Background Shiv music from YouTube (needs internet). Browsers block sound until one tap/OK press, hence the button.
+/* Background Shiv music from YouTube (needs internet). Audio-only uploads where possible (no film dialogue). Browsers block sound until one tap/OK press, hence the button.
    Plays the sources in order, then repeats. v = single video ID, l = playlist ID. A source that won't play is skipped. */
 const SRC=[
- {v:"JwV-tAf8WDk"},                              // Amit Trivedi - Namo Namo (Kedarnath)
- {v:"Njyx5ZuwEHI"},                              // Arijit Singh - Har Har Gange (Batti Gul Meter Chalu)
+ {v:"P2_z9fWQa7k"},                             // Amit Trivedi - Namo Namo (full audio)
+ {v:"pU-pXgrA8zE"},                             // Arijit Singh - Har Har Gange (audio)
  {v:"LNvdL_SPjto"},                              // Ganga Dharaay Shiv Ganga Dharaay
  {v:"75buPuJ9rWU"},                              // Jai Jai Gange Namami (Namami Gange bhajan)
- {v:"yb7DXz2wIAg"},                              // Hanuman Ansh - Parvati (full song)
- {v:"xpUh21LdPuI"},                              // Hanuman Ansh - Aavagaman (full song)
- {v:"ULGoYEsE_48"},                              // Hanuman Ansh - Sita Ram Sita Ram
+ {v:"qhSZFy2B5wE"},                             // Hanuman Ansh - Parvati (audio)
+ {v:"xlNgOe8VL54"},                             // Hanuman Ansh - Aavagaman (full audio)
  {v:"0F0kWlKblSo"},                              // Hanuman Ansh - full audio jukebox
- {v:"StfQwuS2CJ4"},                              // Kailash Kher - Maha Shivratri special top 10
  {v:"7-h8jGwlR-M"},                              // Kailash Kher - Shivoham
  {v:"XbN7oeyrMAU"},                              // Shankar Mahadevan - popular Shiva songs jukebox
  {v:"cBLJpnq-bjM"},                              // Shankar Mahadevan - Shiv Tandav (Hi-Fi)
  {l:"PLyXHXSHxLqKwtSy5aUsOmdiEA5wCstkbv"},       // Anuradha Paudwal Shiv bhajans
  {v:"LoTmkf0coSk"},                              // Hariharan, Anuradha Paudwal, Suresh Wadkar jukebox
- {v:"SyJGyq5rDsw"},                              // Best morning Shiv bhajans
+ {v:"qjsyO-kzZIY"},                             // Prayer bhajans of Lord Shiva - full audio jukebox
  {l:"PL89F893AC7208EA6D"},                       // Shiv Aarti Sangrah
  {l:"PLkATqEKojb1GVrrzvxaE_dFJXrT2Ma-Q0"},       // Om Shiv mantras
  {l:"PLNnsrbMKr2O1X0YCqwnttkOSqKPrEpA55"},       // Shiv bhajans
@@ -141,7 +139,9 @@ window.onYouTubeIframeAPIReady=()=>{p=new YT.Player("yt",{playerVars:{playsinlin
 const next=()=>{if(!p)return;const s=cur(),pl=s.l&&p.getPlaylist&&p.getPlaylist();if(pl&&p.getPlaylistIndex()<pl.length-1)p.nextVideo();else{i++;go()}};
 const prev=()=>{if(!p)return;const s=cur(),pl=s.l&&p.getPlaylist&&p.getPlaylist();if(pl&&p.getPlaylistIndex()>0)p.previousVideo();else{i--;go()}};
 nxt.onclick=next;prv.onclick=prev;
-let hideT;const reveal=()=>{nav.classList.add("show");clearTimeout(hideT);hideT=setTimeout(()=>nav.classList.remove("show"),4000)};
+let hideT;const fs=()=>document.fullscreenElement||matchMedia("(display-mode: fullscreen)").matches||(innerWidth>=screen.width-1&&innerHeight>=screen.height-1);   // also catches F11
+const reveal=()=>{if(fs()){nav.classList.remove("show");return}nav.classList.add("show");clearTimeout(hideT);hideT=setTimeout(()=>nav.classList.remove("show"),3000)};
+["fullscreenchange","resize"].forEach(t=>addEventListener(t,()=>fs()&&nav.classList.remove("show")));
 ["pointermove","pointerdown","touchstart"].forEach(t=>addEventListener(t,reveal,{passive:true}));
 document.onkeydown=e=>{reveal();if(e.key==="ArrowRight"||e.key==="MediaTrackNext"||e.key==="n")next();if(e.key==="ArrowLeft"||e.key==="MediaTrackPrevious"||e.key==="p")prev()};
 snd.onclick=()=>p&&(p.getPlayerState()===1||p.playVideo());
@@ -149,14 +149,19 @@ document.head.appendChild(Object.assign(document.createElement("script"),{src:"h
 </script>
 <canvas id="fw" aria-hidden="true"></canvas>
 <script>
-/* Skyshot show: 50 shells, then a pause, then it repeats. Canvas, no libraries. Skipped if the device asks for reduced motion. */
+/* Skyshot show: runs non-stop in rounds of 50 shells (each round ends in a quick volley). Never drawn over the parents' photo. Canvas, no libraries. Skipped if the device asks for reduced motion. */
 (()=>{
 if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
-const SHOTS=50,PAUSE=45000,START=3500,c=document.getElementById("fw"),x=c.getContext("2d");
+const SHOTS=50,PAUSE=1500,START=3500,c=document.getElementById("fw"),x=c.getContext("2d");
 let W,H,k;const fit=()=>{W=c.width=innerWidth;H=c.height=innerHeight;k=H/1080};fit();addEventListener("resize",fit);
 const COL=[[255,214,102],[255,140,50],[255,90,140],[255,255,255],[120,255,160],[120,190,255],[200,120,255]];
 const R=Math.random,rockets=[],parts=[];let fired=0,nextAt=performance.now()+START,last=performance.now();
-function launch(){fired++;rockets.push({x:W*(.12+.76*R()),y:H,vx:(R()-.5)*1.4*k,vy:-(11+5*R())*k,ty:H*(.1+.35*R())})}
+const no={x:0,y:0,w:0,h:0};   // parents' photo box: nothing is drawn here
+const upd=()=>{const e=document.querySelector(".par");if(e){const r=e.getBoundingClientRect();no.x=r.left;no.y=r.top;no.w=r.width;no.h=r.height}};
+upd();addEventListener("resize",upd);setInterval(upd,600);
+const hit=(px,py,m)=>px>no.x-m&&px<no.x+no.w+m&&py>no.y-m&&py<no.y+no.h+m;
+function launch(){fired++;let bx,ty,t=0;do{bx=W*(.12+.76*R());ty=H*(.1+.35*R())}while(t++<8&&hit(bx,ty,120*k));
+ rockets.push({x:bx,y:H,vx:(R()-.5)*1.4*k,vy:-(11+5*R())*k,ty})}
 function burst(px,py){
  const col=COL[R()*COL.length|0],alt=R()<.35?COL[R()*COL.length|0]:col,n=100+(R()*60|0),sp=(4+3.5*R())*k,willow=R()<.25;
  for(let i=0;i<n;i++){const a=R()*6.2832,s=(.7+.3*R())*sp;
@@ -165,8 +170,9 @@ function burst(px,py){
 function frame(now){
  const dt=Math.min((now-last)/16.7,3);last=now;
  if(fired<SHOTS&&now>=nextAt){launch();nextAt=now+(fired>40?120+230*R():450+800*R())}
- if(fired>=SHOTS&&!rockets.length&&!parts.length&&nextAt<now){fired=0;nextAt=now+PAUSE}
+ if(fired>=SHOTS&&nextAt<now){fired=0;nextAt=now+PAUSE}
  if(!rockets.length&&!parts.length){x.clearRect(0,0,W,H);requestAnimationFrame(frame);return}
+ x.save();x.beginPath();x.rect(0,0,W,H);x.rect(no.x,no.y,no.w,no.h);x.clip("evenodd");   // everything except the parents' photo
  x.globalCompositeOperation="destination-out";x.fillStyle="rgba(0,0,0,.2)";x.fillRect(0,0,W,H);   // fade = trails
  x.globalCompositeOperation="lighter";
  for(let i=rockets.length;i--;){const r=rockets[i];r.x+=r.vx*dt;r.y+=r.vy*dt;r.vy*=.992;
@@ -176,7 +182,7 @@ function frame(now){
   p.vx*=Math.pow(.985,dt);p.vy=p.vy*Math.pow(.985,dt)+p.g*k*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
   const a=1-p.l/p.m;x.fillStyle="rgba("+p.c[0]+","+p.c[1]+","+p.c[2]+","+a.toFixed(2)+")";
   x.beginPath();x.arc(p.x,p.y,(1.8+2.4*a)*k,0,6.2832);x.fill()}
- requestAnimationFrame(frame)}
+ x.restore();requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
 })();
 </script>
