@@ -46,7 +46,8 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
 [hidden]{display:none!important}
 #yt{position:fixed;left:0;bottom:0;width:320px;height:180px;opacity:0;pointer-events:none}
 #snd{position:fixed;left:1.2em;bottom:1.2em;z-index:5;font-size:1.2em;color:#3b0710;background:var(--g);border:0;border-radius:50%;width:2em;height:2em;opacity:.35;cursor:pointer}
-#snd:focus,#snd:hover{opacity:1}
+#nxt{position:fixed;left:4em;bottom:1.2em;z-index:5;font-size:1.2em;color:#3b0710;background:var(--g);border:0;border-radius:50%;width:2em;height:2em;opacity:.35;cursor:pointer}
+#snd:focus,#snd:hover,#nxt:focus,#nxt:hover{opacity:1}
 /* gentle animation (CSS only; off when the device asks for reduced motion) */
 @media (prefers-reduced-motion:no-preference){
  .stage>*,.top,.wel,.en,.name{animation:rise 1.2s cubic-bezier(.2,.7,.2,1) both}
@@ -87,6 +88,7 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
 </main>
 <div id="yt"></div>
 <button id="snd" autofocus title="शिव भजन शुरू करें" aria-label="Start Shiv bhajan">🔊</button>
+<button id="nxt" title="अगला गाना" aria-label="Next song">⏭</button>
 <script>
 /* Background Shiv music from YouTube (needs internet). Browsers block sound until one tap/OK press, hence the button.
    Plays the sources in order, then repeats. v = single video ID, l = playlist ID. A source that won't play is skipped. */
@@ -111,6 +113,9 @@ window.onYouTubeIframeAPIReady=()=>{p=new YT.Player("yt",{playerVars:{playsinlin
  onReady:go,
  onStateChange:e=>{if(e.data===1)snd.hidden=true;if(e.data===0){i++;go()}},
  onError:()=>{SRC[i%SRC.length].v?(i++,go()):p.nextVideo()}}})};
+const next=()=>{if(!p)return;const s=SRC[i%SRC.length],pl=s.l&&p.getPlaylist&&p.getPlaylist();if(pl&&p.getPlaylistIndex()<pl.length-1)p.nextVideo();else{i++;go()}};
+nxt.onclick=next;
+document.onkeydown=e=>{if(e.key==="ArrowRight"||e.key==="MediaTrackNext"||e.key==="n")next()};
 snd.onclick=()=>p&&(p.getPlayerState()===1||p.playVideo());
 document.head.appendChild(Object.assign(document.createElement("script"),{src:"https://www.youtube.com/iframe_api"}));
 </script>
