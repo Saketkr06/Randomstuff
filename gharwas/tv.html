@@ -45,9 +45,10 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
 [hidden]{display:none!important}
 #yt{position:fixed;left:0;bottom:0;width:320px;height:180px;opacity:0;pointer-events:none}
 #snd{position:fixed;left:1.2em;bottom:1.2em;z-index:5;font-size:1.2em;color:#3b0710;background:var(--g);border:0;border-radius:50%;width:2em;height:2em;opacity:.35;cursor:pointer}
-#nxt{position:fixed;left:4em;bottom:1.2em;z-index:5;font-family:inherit;font-weight:700;font-size:1.15em;color:#3b0710;background:var(--g);border:0;border-radius:2em;padding:.5em 1.1em;opacity:.9;cursor:pointer;white-space:nowrap}
-#snd[hidden]+#nxt{left:1.2em}
-#snd:focus,#snd:hover,#nxt:focus,#nxt:hover{opacity:1}
+#nav{position:fixed;left:4em;bottom:1.2em;z-index:5;display:flex;gap:.6em}
+#snd[hidden]+#nav{left:1.2em}
+#prv,#nxt{font-family:inherit;font-weight:700;font-size:1.15em;color:#3b0710;background:var(--g);border:0;border-radius:2em;padding:.5em 1.1em;opacity:.9;cursor:pointer;white-space:nowrap}
+#snd:focus,#snd:hover,#prv:focus,#prv:hover,#nxt:focus,#nxt:hover{opacity:1}
 /* gentle animation (CSS only; off when the device asks for reduced motion) */
 @media (prefers-reduced-motion:no-preference){
  .stage>*,.top,.wel,.en,.name{animation:rise 1.2s cubic-bezier(.2,.7,.2,1) both}
@@ -102,7 +103,8 @@ body{display:grid;place-items:center;font-family:"Noto Sans Devanagari","Mukta",
 </main>
 <div id="yt"></div>
 <button id="snd" autofocus title="शिव भजन शुरू करें" aria-label="Start Shiv bhajan">🔊</button>
-<button id="nxt" title="अगला गाना" aria-label="Next song">⏭ अगला गाना</button>
+<div id="nav"><button id="prv" title="पिछला गाना" aria-label="Previous song">⏮ पिछला गाना</button>
+<button id="nxt" title="अगला गाना" aria-label="Next song">⏭ अगला गाना</button></div>
 <script>
 /* Background Shiv music from YouTube (needs internet). Browsers block sound until one tap/OK press, hence the button.
    Plays the sources in order, then repeats. v = single video ID, l = playlist ID. A source that won't play is skipped. */
@@ -127,14 +129,16 @@ const SRC=[
  {l:"PLNnsrbMKr2O1X0YCqwnttkOSqKPrEpA55"},       // Shiv bhajans
  {l:"PLwOqiCzUK-HdnCOO59TnuxWDiBRZ8i_Qu"}];      // Non-stop Shiv bhajan
 let p,i=0;
-const go=()=>{const s=SRC[i%SRC.length];s.v?p.loadVideoById(s.v):p.loadPlaylist({listType:"playlist",list:s.l})};
+const cur=()=>SRC[(i%SRC.length+SRC.length)%SRC.length];   // i can go negative when stepping back
+const go=()=>{const s=cur();s.v?p.loadVideoById(s.v):p.loadPlaylist({listType:"playlist",list:s.l})};
 window.onYouTubeIframeAPIReady=()=>{p=new YT.Player("yt",{playerVars:{playsinline:1},events:{
  onReady:go,
  onStateChange:e=>{if(e.data===1)snd.hidden=true;if(e.data===0){i++;go()}},
- onError:()=>{SRC[i%SRC.length].v?(i++,go()):p.nextVideo()}}})};
-const next=()=>{if(!p)return;const s=SRC[i%SRC.length],pl=s.l&&p.getPlaylist&&p.getPlaylist();if(pl&&p.getPlaylistIndex()<pl.length-1)p.nextVideo();else{i++;go()}};
-nxt.onclick=next;
-document.onkeydown=e=>{if(e.key==="ArrowRight"||e.key==="MediaTrackNext"||e.key==="n")next()};
+ onError:()=>{cur().v?(i++,go()):p.nextVideo()}}})};
+const next=()=>{if(!p)return;const s=cur(),pl=s.l&&p.getPlaylist&&p.getPlaylist();if(pl&&p.getPlaylistIndex()<pl.length-1)p.nextVideo();else{i++;go()}};
+const prev=()=>{if(!p)return;const s=cur(),pl=s.l&&p.getPlaylist&&p.getPlaylist();if(pl&&p.getPlaylistIndex()>0)p.previousVideo();else{i--;go()}};
+nxt.onclick=next;prv.onclick=prev;
+document.onkeydown=e=>{if(e.key==="ArrowRight"||e.key==="MediaTrackNext"||e.key==="n")next();if(e.key==="ArrowLeft"||e.key==="MediaTrackPrevious"||e.key==="p")prev()};
 snd.onclick=()=>p&&(p.getPlayerState()===1||p.playVideo());
 document.head.appendChild(Object.assign(document.createElement("script"),{src:"https://www.youtube.com/iframe_api"}));
 </script>
